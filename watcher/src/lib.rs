@@ -24,7 +24,7 @@ impl Watcher {
         let file_descriptor = unix::observation_init()?;
         let (sender, receiver) = mpsc::channel();
 
-        return match unix::add_watch(file_descriptor, directory) {
+        match unix::add_watch(file_descriptor, directory) {
             Ok(watch_descriptor) => Ok(Watcher {
                 file_descriptor,
                 watch_descriptor,
@@ -36,7 +36,7 @@ impl Watcher {
                 unsafe { unix::close(file_descriptor) };
                 Err(error)
             }
-        };
+        }
     }
 
     pub fn start_observation(&mut self) -> Result<Receiver<ObservationEvent>, String> {

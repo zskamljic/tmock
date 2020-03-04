@@ -47,6 +47,7 @@ pub(crate) fn read(file_descriptor: i32) -> IoResult<Vec<FileEvent>> {
 }
 
 fn consume(buffer: &[u8]) -> (usize, FileEvent) {
+    #[allow(clippy::cast_ptr_alignment)]
     let event = buffer.as_ptr() as *const unix::InotifyEvent;
     let event = unsafe { &*event };
 
@@ -55,7 +56,7 @@ fn consume(buffer: &[u8]) -> (usize, FileEvent) {
     let name = &buffer[unix::STRUCT_SIZE..name_end];
     let name = str::from_utf8(name)
         .expect("Expected UTF8 string")
-        .split("\0")
+        .split('\0')
         .collect::<Vec<&str>>()[0];
 
     let event_type = if event.mask & unix::IN_MODIFY != 0 {

@@ -1,4 +1,5 @@
 use crate::events::{self, EventType, FileEvent};
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender};
 
@@ -17,7 +18,7 @@ pub fn observe(receiver: Receiver<()>, sender: Sender<ObservationEvent>, file_de
             Ok(events) => process_events(&mut cookie_map, events, &sender),
             Err(error) => println!("Error when reading event: {}", error),
         }
-        if let Ok(_) = receiver.try_recv() {
+        if receiver.try_recv().is_ok() {
             break;
         }
     }
@@ -55,18 +56,16 @@ fn process_move_event(
     cookie_map: &mut HashMap<u32, String>,
     event: FileEvent,
 ) -> Option<ObservationEvent> {
-    return if cookie_map.contains_key(&event.cookie) {
-        let result = ObservationEvent::Move {
-            // safe to unwrap since presence is checked above
-            from: cookie_map.remove(&event.cookie).unwrap(),
+    match cookie_map.entry(event.cookie) {
+        Entry::Occupied(entry) => Some(ObservationEvent::Move {
+            from: entry.remove(),
             to: event.file_name,
-        };
-        cookie_map.remove(&event.cookie);
-        Some(result)
-    } else {
-        cookie_map.insert(event.cookie, event.file_name);
-        None
-    };
+        }),
+        Entry::Vacant(entry) => {
+            entry.insert(event.file_name);
+            None
+        }
+    }
 }
 
 #[cfg(test)]

@@ -4,12 +4,12 @@ use std::mem;
 
 pub const STRUCT_SIZE: usize = mem::size_of::<InotifyEvent>();
 
-pub const IN_MODIFY: u32 = 0x00000002;
-pub const IN_MOVED_FROM: u32 = 0x00000040;
-pub const IN_MOVED_TO: u32 = 0x00000080;
+pub const IN_MODIFY: u32 = 0x0000_0002;
+pub const IN_MOVED_FROM: u32 = 0x0000_0040;
+pub const IN_MOVED_TO: u32 = 0x0000_0080;
 pub const IN_MOVED: u32 = (IN_MOVED_FROM | IN_MOVED_TO);
-pub const IN_CREATE: u32 = 0x00000100;
-pub const IN_DELETE: u32 = 0x00000200;
+pub const IN_CREATE: u32 = 0x0000_0100;
+pub const IN_DELETE: u32 = 0x0000_0200;
 
 pub fn observation_init() -> Result<i32, Error> {
     unsafe {
