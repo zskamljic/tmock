@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, ErrorKind, Result};
 
@@ -8,6 +9,30 @@ pub enum BencodeValue {
     String(String),
     List(Vec<BencodeValue>),
     Dictionary(HashMap<String, BencodeValue>),
+}
+
+impl Display for BencodeValue {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        match self {
+            BencodeValue::Integer(value) => write!(formatter, "{}", value),
+            BencodeValue::String(value) => write!(formatter, "{}", value),
+            BencodeValue::List(value) => {
+                let values = value
+                    .iter()
+                    .map(|x| format!("{}", x))
+                    .collect::<Vec<String>>();
+                write!(formatter, "[{}]", values.join(", "))?;
+                Ok(())
+            }
+            BencodeValue::Dictionary(value) => {
+                let values = value
+                    .iter()
+                    .map(|x| format!("\t{}: {}", x.0, x.1))
+                    .collect::<Vec<String>>();
+                write!(formatter, "{{\n{}\n}}", values.join(",\n"))
+            }
+        }
+    }
 }
 
 pub fn load(file_name: &str) -> Result<BencodeValue> {
@@ -166,6 +191,16 @@ mod tests {
     #[test]
     fn load_bencoded() {
         load("../archlinux-2020.02.01-x86_64.iso.torrent").unwrap();
+    }
+
+    #[test]
+    fn prints_formatted() -> Result<()> {
+        let mut input = "d3:bar4:spam3:fooi42e3:keyl1:a1:b1:c1:dee".as_bytes();
+        let value = read(&mut input)?;
+
+        println!("{}", value);
+
+        Ok(())
     }
 
     #[test]
