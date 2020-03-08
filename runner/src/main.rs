@@ -7,6 +7,14 @@ use watcher::Watcher;
 fn main() {
     directories::must_exist("torrents").unwrap_or_else(log_exit);
 
+    // We made sure that the directory exists above
+    let mut entries = runner::load_existing_entries().unwrap();
+    // Observe files for changes
+    //  Remove if deleted
+    //  Add if added
+    //  Change key if moved
+    //  Remove and re-add if modified
+
     let mut watcher = Watcher::new("torrents").unwrap_or_else(|err| {
         log_exit(err);
         panic!("Did not exit");
@@ -16,10 +24,13 @@ fn main() {
 
     while let Ok(value) = receiver.recv() {
         match value {
-            ObservationEvent::Created(file) => println!("Created file {}", file),
-            ObservationEvent::Deleted(file) => println!("Deleted file {}", file),
-            ObservationEvent::Modified(file) => println!("Modified file {}", file),
-            ObservationEvent::Move { from, to } => println!("Moved from {} to {}", from, to),
+            ObservationEvent::Created(file) => runner::add_file_entry(&mut entries, &file),
+            ObservationEvent::Deleted(file) => runner::remove_file_entry(&mut entries, &file),
+            ObservationEvent::Modified(file) => {
+                runner::remove_file_entry(&mut entries, &file);
+                runner::add_file_entry(&mut entries, &file);
+            }
+            ObservationEvent::Move { from, to } => runner::move_file_entry(&mut entries, from, to),
         }
     }
 }
