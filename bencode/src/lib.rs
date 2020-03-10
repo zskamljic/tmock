@@ -5,7 +5,7 @@ use std::io::{BufRead, BufReader, Error, ErrorKind, Result};
 
 #[derive(PartialEq)]
 pub enum BencodeValue {
-    Integer(i32),
+    Integer(i64),
     String(String),
     List(Vec<BencodeValue>),
     Dictionary(HashMap<String, BencodeValue>),
@@ -52,7 +52,7 @@ fn read<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
 fn select_next_type<T: BufRead>(reader: &mut T, type_token: u8) -> Result<BencodeValue> {
     match type_token {
         b'i' => read_integer(reader),
-        value if (b'1'..=b'9').contains(&value) => read_string(reader, value),
+        value if (b'0'..=b'9').contains(&value) => read_string(reader, value),
         b'l' => read_list(reader),
         b'd' => read_dictionary(reader),
         value => Err(Error::new(

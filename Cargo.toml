@@ -3,5 +3,6 @@ members = [
     "bencode",
     "directories",
     "runner",
+    "torrent",
     "watcher"
 ]

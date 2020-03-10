@@ -18,6 +18,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrent"
+version = "0.1.0"
+
+[[package]]
 name = "watcher"
 version = "0.1.0"
 

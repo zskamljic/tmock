@@ -9,11 +9,6 @@ fn main() {
 
     // We made sure that the directory exists above
     let mut entries = runner::load_existing_entries().unwrap();
-    // Observe files for changes
-    //  Remove if deleted
-    //  Add if added
-    //  Change key if moved
-    //  Remove and re-add if modified
 
     let mut watcher = Watcher::new("torrents").unwrap_or_else(|err| {
         log_exit(err);
