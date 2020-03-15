@@ -1,161 +1,64 @@
-use bencode::BencodeValue;
-use std::io::Error;
-use std::io::ErrorKind;
+use bencode::{BencodeValue, Decodable};
+use bencode_derive::Decodable;
 
-struct Torrent {
+#[derive(Decodable)]
+pub struct Torrent {
     announce: String,
     info: Info,
 }
 
-struct Info {
+#[derive(Decodable)]
+pub struct Info {
     name: String,
     piece_length: usize,
-    pieces: Vec<u8>,
+    pieces: String,
     length: Option<usize>,
     files: Option<Vec<File>>,
 }
 
-struct File {
+#[derive(Decodable)]
+pub struct File {
     length: usize,
     path: Vec<String>,
 }
 
-impl Torrent {
-    fn from_bencode(value: &BencodeValue) -> Result<Torrent, Error> {
-        if let BencodeValue::Dictionary(dictionary) = value {
-            let announce = match dictionary.get("announce") {
-                Some(BencodeValue::String(url)) => url,
-                _ => return Err(Error::new(ErrorKind::InvalidData, "Announce URL missing")),
-            };
-            let info = match dictionary.get("info") {
-                Some(value) => value,
-                None => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Info dictionary missing",
-                    ))
-                }
-            };
-            Ok(Torrent {
-                announce: announce.to_string(),
-                info: Info::from_bencode(info)?,
-            })
-        } else {
-            Err(Error::new(
-                ErrorKind::InvalidData,
-                "Torrent file root was not a dictionary",
-            ))
-        }
-    }
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Result;
 
-impl Info {
-    fn from_bencode(value: &BencodeValue) -> Result<Info, Error> {
-        if let BencodeValue::Dictionary(dictionary) = value {
-            let name = match dictionary.get("name") {
-                Some(BencodeValue::String(value)) => value,
-                _ => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Info name was not present or not a string",
-                    ))
-                }
-            };
-            let piece_length = match dictionary.get("piece_length") {
-                Some(BencodeValue::Integer(value)) => value,
-                _ => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Info piece length was not an integer",
-                    ))
-                }
-            };
-            let pieces = match dictionary.get("pieces") {
-                Some(BencodeValue::String(value)) => value,
-                _ => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Info pieces was not a string",
-                    ))
-                }
-            };
-            let length = match dictionary.get("length") {
-                Some(BencodeValue::Integer(value)) => Some(*value as usize),
-                _ => None,
-            };
-            let files = match dictionary.get("files") {
-                Some(BencodeValue::List(value)) => Some(as_files(value)?),
-                _ => None,
-            };
-            Ok(Info {
-                name: name.to_string(),
-                piece_length: *piece_length as usize,
-                pieces: pieces.to_string().into_bytes(),
-                length,
-                files,
-            })
-        } else {
-            Err(Error::new(
-                ErrorKind::InvalidData,
-                "Info field was not a dictionary",
-            ))
-        }
-    }
-}
+    #[test]
+    fn decode_file_succeds() -> Result<()> {
+        let mut input = "d6:lengthi5e4:pathl1:a1:bee".as_bytes();
+        let file = File::read(&mut input)?;
 
-fn as_files(list: &Vec<BencodeValue>) -> Result<Vec<File>, Error> {
-    let mut files = Vec::new();
+        assert_eq!(5, file.length);
+        assert_eq!(2, file.path.len());
+        assert_eq!(vec!["a".to_string(), "b".to_string()], file.path);
 
-    for value in list {
-        files.push(File::from_bencode(value)?)
+        Ok(())
     }
 
-    Ok(files)
-}
+    #[test]
+    fn decode_fn_succeeds_string() -> Result<()> {
+        let value: String = String::decode(&BencodeValue::String("asdf".to_string()))?;
 
-impl File {
-    fn from_bencode(value: &BencodeValue) -> Result<File, Error> {
-        if let BencodeValue::Dictionary(dictionary) = value {
-            let length = match dictionary.get("length") {
-                Some(BencodeValue::Integer(value)) => value,
-                _ => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Length of file was not an integer",
-                    ))
-                }
-            };
-            let path = match dictionary.get("path") {
-                Some(BencodeValue::List(values)) => as_string_vector(values)?,
-                _ => {
-                    return Err(Error::new(
-                        ErrorKind::InvalidData,
-                        "Path of file was not a vector",
-                    ))
-                }
-            };
-            Ok(File {
-                length: *length as usize,
-                path,
-            })
-        } else {
-            Err(Error::new(
-                ErrorKind::InvalidData,
-                "Files must be dictionaries",
-            ))
-        }
-    }
-}
-
-fn as_string_vector(list: &Vec<BencodeValue>) -> Result<Vec<String>, Error> {
-    let mut result = Vec::new();
-
-    for item in list {
-        match item {
-            BencodeValue::String(value) => result.push(value.to_string()),
-            _ => return Err(Error::new(ErrorKind::InvalidData, "Expected string vector")),
-        }
+        assert_eq!("asdf", value);
+        Ok(())
     }
 
-    Ok(result)
+    #[test]
+    fn decode_info_succeeds() -> Result<()> {
+        let mut input = "d4:name4:name12:piece_lengthi1e6:pieces1:56:lengthi11ee".as_bytes();
+        let info = Info::read(&mut input)?;
+
+        assert_eq!("name", info.name);
+        assert_eq!(1, info.piece_length);
+        assert_eq!(1, info.pieces.len());
+        assert_eq!("5", info.pieces);
+        assert!(info.length.is_some());
+        assert_eq!(Some(11), info.length);
+
+        Ok(())
+    }
 }

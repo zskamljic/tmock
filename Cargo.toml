@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "bencode",
+    "bencode_derive",
     "directories",
     "runner",
     "torrent",
