@@ -10,6 +10,11 @@ fn main() {
     // We made sure that the directory exists above
     let mut entries = runner::load_existing_entries().unwrap();
 
+    println!("Loaded files:");
+    for key in entries.keys() {
+        println!("\t{}", key);
+    }
+
     let mut watcher = Watcher::new("torrents").unwrap_or_else(|err| {
         log_exit(err);
         panic!("Did not exit");
