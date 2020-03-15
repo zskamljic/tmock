@@ -1,4 +1,4 @@
-use bencode::{BencodeValue, Decodable};
+pub use bencode::{BencodeValue, Decodable};
 use bencode_derive::Decodable;
 
 #[derive(Decodable)]

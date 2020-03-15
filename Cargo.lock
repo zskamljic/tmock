@@ -37,8 +37,8 @@ dependencies = [
 name = "runner"
 version = "0.1.0"
 dependencies = [
- "bencode 0.1.0",
  "directories 0.1.0",
+ "torrent 0.1.0",
  "watcher 0.1.0",
 ]
 

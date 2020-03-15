@@ -85,9 +85,9 @@ mod tests {
             let _receiver = watcher.start_observation().unwrap();
             File::create("touch").unwrap();
 
-            thread::sleep(Duration::from_secs(1));
+            thread::sleep(Duration::from_millis(10));
         }
-        thread::sleep(Duration::from_secs(1));
+        thread::sleep(Duration::from_millis(10));
 
         fs::remove_file("touch").unwrap();
         Ok(())

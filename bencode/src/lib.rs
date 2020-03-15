@@ -39,7 +39,7 @@ impl Display for BencodeValue {
     }
 }
 
-pub fn load(file_name: &str) -> Result<BencodeValue> {
+pub fn from_file(file_name: &str) -> Result<BencodeValue> {
     let file = File::open(file_name)?;
     let mut reader = BufReader::new(file);
 
@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn load_bencoded() {
-        load("../torrents/archlinux-2020.02.01-x86_64.iso.torrent").unwrap();
+        from_file("../torrents/archlinux-2020.02.01-x86_64.iso.torrent").unwrap();
     }
 
     #[test]

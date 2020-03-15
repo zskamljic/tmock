@@ -1,4 +1,4 @@
-use super::{read, BencodeValue};
+use super::{from_file, read, BencodeValue};
 use std::io::{BufRead, Error, ErrorKind, Result};
 
 macro_rules! impl_decodable {
@@ -34,6 +34,10 @@ pub trait Decodable {
 
     fn read<T: BufRead>(reader: &mut T) -> Result<Self::Output> {
         Self::decode(&read(reader)?)
+    }
+
+    fn from_file(file_name: &str) -> Result<Self::Output> {
+        Self::decode(&from_file(file_name)?)
     }
 }
 

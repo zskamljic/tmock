@@ -5,6 +5,6 @@ authors = ["zskamljic <zan.skamljic@equaleyes.com>"]
 edition = "2018"
 
 [dependencies]
-bencode = { path = "../bencode" }
 directories = { path = "../directories" }
+torrent = { path = "../torrent" }
 watcher = { path = "../watcher" }
