@@ -1,7 +1,10 @@
 mod decode;
+mod encode;
 
 pub use decode::decode;
 pub use decode::Decodable;
+pub use encode::encode;
+pub use encode::Encodable;
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
