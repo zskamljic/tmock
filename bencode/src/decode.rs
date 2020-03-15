@@ -93,12 +93,9 @@ impl Decodable for String {
 pub fn decode<T: Decodable>(value: &BencodeValue, name: &str) -> Result<T::Output> {
     match value {
         BencodeValue::Dictionary(map) => T::decode_option(map.get(name)),
-        val => {
-            println!("Value that didn't match: {}", val);
-            Err(Error::new(
-                ErrorKind::InvalidData,
-                "The structure didn't match",
-            ))
-        }
+        _ => Err(Error::new(
+            ErrorKind::InvalidData,
+            "The structure didn't match",
+        )),
     }
 }

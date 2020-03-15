@@ -10,6 +10,7 @@ pub struct Torrent {
 #[derive(Decodable)]
 pub struct Info {
     name: String,
+    #[bencode("piece length")]
     piece_length: usize,
     pieces: String,
     length: Option<usize>,
@@ -49,7 +50,7 @@ mod tests {
 
     #[test]
     fn decode_info_succeeds() -> Result<()> {
-        let mut input = "d4:name4:name12:piece_lengthi1e6:pieces1:56:lengthi11ee".as_bytes();
+        let mut input = "d4:name4:name12:piece lengthi1e6:pieces1:56:lengthi11ee".as_bytes();
         let info = Info::read(&mut input)?;
 
         assert_eq!("name", info.name);
@@ -58,6 +59,13 @@ mod tests {
         assert_eq!("5", info.pieces);
         assert!(info.length.is_some());
         assert_eq!(Some(11), info.length);
+
+        Ok(())
+    }
+
+    #[test]
+    fn decode_torrent_succeeds() -> Result<()> {
+        let value = Torrent::from_file("../torrents/archlinux-2020.02.01-x86_64.iso.torrent")?;
 
         Ok(())
     }

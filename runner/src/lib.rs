@@ -17,10 +17,12 @@ fn is_torrent(path: &PathBuf) -> bool {
 }
 
 fn unwrap_path_content((path, value): (String, Result<Torrent>)) -> Option<(String, Torrent)> {
-    if let Ok(value) = value {
-        Some((path, value))
-    } else {
-        None
+    match value {
+        Ok(value) => Some((path, value)),
+        Err(error) => {
+            eprintln!("Error when loading {}: {}", path, error);
+            None
+        }
     }
 }
 
