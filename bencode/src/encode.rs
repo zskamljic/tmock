@@ -1,5 +1,5 @@
 use super::BencodeValue;
-use std::collections::HashMap;
+use crate::map::InsertOrderMap;
 
 macro_rules! impl_encodable {
     ($($x:ty),*) => {
@@ -65,7 +65,7 @@ pub fn encode(value: &BencodeValue) -> String {
     }
 }
 
-fn encode_map(map: &HashMap<String, BencodeValue>) -> String {
+fn encode_map(map: &InsertOrderMap<String, BencodeValue>) -> String {
     let mut output = String::from("d");
 
     for (key, value) in map {

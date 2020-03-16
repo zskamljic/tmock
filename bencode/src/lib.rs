@@ -1,11 +1,12 @@
 mod decode;
 mod encode;
+mod map;
 
 pub use decode::decode;
 pub use decode::Decodable;
 pub use encode::encode;
 pub use encode::Encodable;
-use std::collections::HashMap;
+pub use map::InsertOrderMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, ErrorKind, Result};
@@ -15,7 +16,7 @@ pub enum BencodeValue {
     Integer(i64),
     String(String),
     List(Vec<BencodeValue>),
-    Dictionary(HashMap<String, BencodeValue>),
+    Dictionary(InsertOrderMap<String, BencodeValue>),
 }
 
 impl Display for BencodeValue {
@@ -161,7 +162,7 @@ fn read_list<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
 }
 
 fn read_dictionary<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
-    let mut map = HashMap::new();
+    let mut map = InsertOrderMap::new();
 
     let mut buffer = [0u8; 1];
     loop {

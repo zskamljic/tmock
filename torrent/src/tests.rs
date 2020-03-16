@@ -54,11 +54,8 @@ fn encode_info_succeeds() {
     };
 
     let encoded = info.encode().unwrap();
-    assert!(encoded.starts_with('d'));
-    assert!(encoded.ends_with('e'));
-    assert!(encoded.contains("4:name4:name"));
-    assert!(encoded.contains("12:piece lengthi5e"));
-    assert!(encoded.contains("6:pieces6:pieces"));
-    assert!(encoded.contains("6:lengthi10e"));
-    assert!(!encoded.contains("files"));
+    assert_eq!(
+        "d4:name4:name12:piece lengthi5e6:pieces6:pieces6:lengthi10ee",
+        encoded
+    );
 }
