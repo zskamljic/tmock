@@ -4,6 +4,7 @@ members = [
     "bencode_derive",
     "directories",
     "runner",
+    "sha1",
     "torrent",
     "watcher"
 ]
