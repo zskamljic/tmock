@@ -8,7 +8,7 @@ pub fn request_trackers(url: &str, info: &Info) -> Result<()> {
     let (host, path) = get_host_and_path(url)?;
     let mut stream = TcpStream::connect(host)?;
 
-    stream.write(format!("GET {}\r\n\r\n", path).as_bytes())?;
+    stream.write_all(format!("GET {}\r\n\r\n", path).as_bytes())?;
 
     let mut buffer = [0u8; 512];
     let read = stream.read(&mut buffer)?;
