@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 bencode = { path = "../bencode" }
 bencode_derive = { path = "../bencode_derive" }
+sha1 = { path = "../sha1" }

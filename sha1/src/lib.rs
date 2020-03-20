@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 macro_rules! add_with_mask {
     ($x:expr) => {
         $x
@@ -10,10 +13,16 @@ macro_rules! add_with_mask {
     }
 }
 
-pub fn sha1(string: &str) -> String {
+pub fn sha1_str(string: &str) -> String {
     let mut sha = Sha1::new();
     sha.update_str(string);
     sha.hex_digest()
+}
+
+pub fn sha1(string: &str) -> [u8; 20] {
+    let mut sha = Sha1::new();
+    sha.update_str(string);
+    sha.digest()
 }
 
 #[derive(Default)]
@@ -94,26 +103,32 @@ impl Sha1 {
         }
     }
 
-    fn digest(&mut self) {
+    fn digest(&mut self) -> [u8; 20] {
         let message_byte_len = self.message_length as usize + self.pending.len();
         self.pending.push(0x80);
 
-        let pad_length = (56 - (message_byte_len + 1) % 64) % 64;
-        for _ in 0..pad_length {
+        while self.pending.len() % 64 != 56 {
             self.pending.push(0x00);
         }
 
         let message_bit_len = message_byte_len as u64 * 8u64;
         self.pending.extend(message_bit_len.to_be_bytes().iter());
         self.consume_pending();
+
+        let mut result = [0u8; 20];
+        for (h_index, value) in self.h.iter().enumerate() {
+            let bytes = value.to_be_bytes();
+            for (byte_index, byte) in bytes.iter().enumerate() {
+                result[h_index * bytes.len() + byte_index] = *byte;
+            }
+        }
+        result
     }
 
     pub fn hex_digest(&mut self) -> String {
-        self.digest();
-
-        self.h
+        self.digest()
             .iter()
-            .map(|value| format!("{:08x}", value))
+            .map(|value| format!("{:02x}", value))
             .collect::<Vec<String>>()
             .join("")
     }
@@ -142,35 +157,4 @@ fn extend(words: &mut [u32; 80]) {
 
 fn left_rotate(value: u32, bits: usize) -> u32 {
     (value << bits) | (value >> (32 - bits))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn sha1_returns_example() {
-        let mut sha1 = Sha1::new();
-        sha1.update_str("The quick brown fox jumps over the lazy dog");
-        let result = sha1.hex_digest();
-
-        assert_eq!("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", result);
-    }
-
-    #[test]
-    fn sha1_returns_example2() {
-        let mut sha1 = Sha1::new();
-        sha1.update_str("The quick brown fox jumps over the lazy cog");
-        let result = sha1.hex_digest();
-
-        assert_eq!("de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3", result);
-    }
-    #[test]
-    fn sha1_returns_example3() {
-        let mut sha1 = Sha1::new();
-        sha1.update_str("");
-        let result = sha1.hex_digest();
-
-        assert_eq!("da39a3ee5e6b4b0d3255bfef95601890afd80709", result);
-    }
 }

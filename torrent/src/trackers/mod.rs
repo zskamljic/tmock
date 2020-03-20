@@ -1,4 +1,8 @@
+#[cfg(test)]
+mod tests;
+
 use crate::Info;
+use bencode::Encodable;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
 use std::net::TcpStream;
@@ -6,9 +10,10 @@ use std::str;
 
 pub fn request_trackers(url: &str, info: &Info) -> Result<()> {
     let (host, path) = get_host_and_path(url)?;
+    let parameters = create_parameters(info);
     let mut stream = TcpStream::connect(host)?;
 
-    stream.write_all(format!("GET {}\r\n\r\n", path).as_bytes())?;
+    stream.write_all(format!("GET {}{}\r\n\r\n", path, parameters).as_bytes())?;
 
     let mut buffer = [0u8; 512];
     let read = stream.read(&mut buffer)?;
@@ -40,33 +45,28 @@ fn get_host_and_path(url: &str) -> Result<(&str, &str)> {
     Ok((host, path))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::Result;
+fn create_parameters(info: &Info) -> String {
+    let mut result = String::new();
+    result.push_str("?info_hash=");
 
-    #[test]
-    fn get_host_and_path_splits_correct() -> Result<()> {
-        let (host, path) = get_host_and_path("http://tracker.archlinux.org:6969/announce")?;
+    let encoded = info.encode().unwrap();
+    let hashed = sha1::sha1(&encoded);
+    result.push_str(&url_encode(&hashed));
+    result
+}
 
-        assert_eq!("tracker.archlinux.org:6969", host);
-        assert_eq!("/announce", path);
-        Ok(())
-    }
-
-    #[test]
-    fn fetch_trackers() -> Result<()> {
-        request_trackers(
-            "http://tracker.archlinux.org:6969/announce",
-            &Info {
-                name: "".to_string(),
-                piece_length: 1,
-                pieces: "".to_string(),
-                files: None,
-                length: None,
-            },
-        )?;
-
-        Ok(())
-    }
+fn url_encode(data: &[u8]) -> String {
+    data.iter()
+        .map(|value| {
+            if (b'a'..=b'z').contains(value)
+                || (b'A'..=b'Z').contains(value)
+                || (b'0'..=b'9').contains(value)
+            {
+                format!("{}", *value as char)
+            } else {
+                format!("%{:02X}", value)
+            }
+        })
+        .collect::<Vec<String>>()
+        .join("")
 }
