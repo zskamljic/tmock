@@ -1,3 +1,4 @@
+mod client;
 #[cfg(test)]
 mod tests;
 mod trackers;

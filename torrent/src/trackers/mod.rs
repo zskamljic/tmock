@@ -1,16 +1,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::Info;
+use crate::client::Client;
+use crate::{Info, Torrent};
 use bencode::Encodable;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
 use std::net::TcpStream;
 use std::str;
 
-pub fn request_trackers(url: &str, info: &Info) -> Result<()> {
-    let (host, path) = get_host_and_path(url)?;
-    let parameters = create_parameters(info);
+pub fn request_trackers(torrent: &Torrent, client: &Client) -> Result<()> {
+    let (host, path) = get_host_and_path(&torrent.announce)?;
+    let parameters = create_parameters(&client, &torrent.info);
     let mut stream = TcpStream::connect(host)?;
 
     stream.write_all(format!("GET {}{}\r\n\r\n", path, parameters).as_bytes())?;
@@ -45,13 +46,21 @@ fn get_host_and_path(url: &str) -> Result<(&str, &str)> {
     Ok((host, path))
 }
 
-fn create_parameters(info: &Info) -> String {
+fn create_parameters(client: &Client, info: &Info) -> String {
     let mut result = String::new();
     result.push_str("?info_hash=");
 
     let encoded = info.encode().unwrap();
     let hashed = sha1::sha1(&encoded);
     result.push_str(&url_encode(&hashed));
+
+    result.push_str("&peer_id=");
+    result.push_str(&url_encode(&client.peer_id));
+    result.push_str("&port=");
+    result.push_str(&format!("{}", client.port));
+    result.push_str("&uploaded=0");
+    result.push_str("&downloaded=0");
+    result.push_str(&format!("&left={}", info.length.unwrap()));
     result
 }
 
