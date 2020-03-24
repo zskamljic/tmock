@@ -55,7 +55,7 @@ fn encode_info_succeeds() {
 
     let encoded = info.encode().unwrap();
     assert_eq!(
-        "d4:name4:name12:piece lengthi5e6:pieces6:pieces6:lengthi10ee",
+        "d6:lengthi10e4:name4:name12:piece lengthi5e6:pieces6:piecese",
         encoded
     );
 }

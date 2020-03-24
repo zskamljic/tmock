@@ -51,6 +51,7 @@ fn create_parameters(client: &Client, info: &Info) -> String {
     result.push_str("?info_hash=");
 
     let encoded = info.encode().unwrap();
+    println!("Encoded: {}", encoded);
     let hashed = sha1::sha1(&encoded);
     result.push_str(&url_encode(&hashed));
 

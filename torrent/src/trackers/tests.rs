@@ -51,7 +51,7 @@ fn create_parameters_creates_query_url() {
     assert_eq!(
         format!(
             "{}{}{}{}{}{}",
-            "?info_hash=%A7%5E%11%C1%8E%17%12%07%F5%E0%21%84z%3EwFH%7D%B6%E0",
+            "?info_hash=%E2%DFH%D3H%93%9DF%B4%87a%B8%8F%96%A0%91%81%95%14K",
             "&peer_id=%00%01%02%03%04%05%06%07%09ABCDEFGHIJK",
             "&port=6881",
             "&uploaded=0",

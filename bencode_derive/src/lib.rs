@@ -37,7 +37,7 @@ pub fn derive_encodable(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl Encodable for #name {
             fn to_bencode(&self) -> Option<BencodeValue> {
-                let mut map = bencode::InsertOrderMap::new();
+                let mut map = std::collections::HashMap::new();
                 #fields
                 Some(BencodeValue::Dictionary(map))
             }
