@@ -3,8 +3,10 @@ mod client;
 mod tests;
 mod trackers;
 
+use bencode::ByteString;
 pub use bencode::{BencodeValue, Decodable, Encodable};
 use bencode_derive::{Decodable, Encodable};
+pub use client::Client;
 
 #[derive(Decodable)]
 pub struct Torrent {
@@ -17,7 +19,7 @@ pub struct Info {
     name: String,
     #[bencode("piece length")]
     piece_length: usize,
-    pieces: String,
+    pieces: ByteString,
     length: Option<usize>,
     files: Option<Vec<File>>,
 }

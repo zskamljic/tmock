@@ -1,4 +1,5 @@
 use super::*;
+use bencode::ByteString;
 use bencode::Decodable;
 use std::io::Result;
 
@@ -32,7 +33,7 @@ fn create_parameters_creates_query_url() {
     let info = Info {
         name: "file".to_string(),
         piece_length: 20,
-        pieces: "asdf".to_string(),
+        pieces: ByteString::new(vec![b'a', b'b', b'c', b'd']),
         length: Some(5),
         files: None,
     };
@@ -51,7 +52,7 @@ fn create_parameters_creates_query_url() {
     assert_eq!(
         format!(
             "{}{}{}{}{}{}",
-            "?info_hash=%E2%DFH%D3H%93%9DF%B4%87a%B8%8F%96%A0%91%81%95%14K",
+            "?info_hash=%7B%BB%B1%F8%A7%A9R%E3%B0I%F6k%F7%98%7D%2C%DB%8AL%85",
             "&peer_id=%00%01%02%03%04%05%06%07%09ABCDEFGHIJK",
             "&port=6881",
             "&uploaded=0",

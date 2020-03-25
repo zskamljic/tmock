@@ -1,8 +1,10 @@
+mod bytestring;
 mod decode;
 mod encode;
 #[cfg(test)]
 mod tests;
 
+pub use bytestring::*;
 pub use decode::decode;
 pub use decode::Decodable;
 pub use encode::encode;
@@ -10,11 +12,13 @@ pub use encode::Encodable;
 pub use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, ErrorKind, Result};
+use std::str;
 
 #[derive(PartialEq)]
 pub enum BencodeValue {
     Integer(i64),
     String(String),
+    ByteString(Vec<u8>),
     List(Vec<BencodeValue>),
     Dictionary(HashMap<String, BencodeValue>),
 }
@@ -82,16 +86,14 @@ fn read_integer<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
 fn read_string<T: BufRead>(reader: &mut T, first: u8) -> Result<BencodeValue> {
     let string_length = read_string_length(reader, first)?;
 
-    let mut buffer = [0u8; 1];
-    let mut resulting_string = String::new();
+    let mut buffer = vec![0u8; string_length];
 
-    for _ in 0..string_length {
-        reader.read_exact(&mut buffer)?;
+    reader.read_exact(&mut buffer)?;
 
-        resulting_string.push(buffer[0] as char);
+    match str::from_utf8(&buffer) {
+        Ok(value) => Ok(BencodeValue::String(value.to_string())),
+        _ => Ok(BencodeValue::ByteString(buffer)),
     }
-
-    Ok(BencodeValue::String(resulting_string))
 }
 
 fn read_string_length<T: BufRead>(reader: &mut T, first: u8) -> Result<usize> {

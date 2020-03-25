@@ -9,9 +9,9 @@ pub struct Client {
 
 impl Client {
     pub fn new(torrent: &Torrent, port: u16) -> Client {
-        let mut client = Client {
+        let client = Client {
             peer_id: random_bytes_id(),
-            port: 6881,
+            port,
         };
         let peers = trackers::request_trackers(&torrent, &client);
 

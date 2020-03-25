@@ -13,15 +13,21 @@ macro_rules! add_with_mask {
     }
 }
 
-pub fn sha1_str(string: &str) -> String {
+pub fn sha1_str_as_str(string: &str) -> String {
     let mut sha = Sha1::new();
     sha.update_str(string);
     sha.hex_digest()
 }
 
-pub fn sha1(string: &str) -> [u8; 20] {
+pub fn sha1_str_as_bytes(string: &str) -> [u8; 20] {
     let mut sha = Sha1::new();
     sha.update_str(string);
+    sha.digest()
+}
+
+pub fn sha1_bytes_as_bytes(bytes: &[u8]) -> [u8; 20] {
+    let mut sha = Sha1::new();
+    sha.update(bytes);
     sha.digest()
 }
 

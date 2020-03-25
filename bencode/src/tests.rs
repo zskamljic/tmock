@@ -3,8 +3,9 @@ mod tests {
     use crate::*;
 
     #[test]
-    fn load_bencoded() {
-        from_file("../torrents/archlinux-2020.02.01-x86_64.iso.torrent").unwrap();
+    fn load_bencoded() -> Result<()> {
+        from_file("../torrents/archlinux-2020.02.01-x86_64.iso.torrent")?;
+        Ok(())
     }
 
     #[test]

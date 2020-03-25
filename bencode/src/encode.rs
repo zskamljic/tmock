@@ -1,5 +1,6 @@
 use super::BencodeValue;
 use std::collections::HashMap;
+use std::iter;
 
 macro_rules! impl_encodable {
     ($($x:ty),*) => {
@@ -16,7 +17,7 @@ macro_rules! impl_encodable {
 impl_encodable!(u8, i8, u16, i16, u32, i32, u64, i64, usize, isize);
 
 pub trait Encodable {
-    fn encode(&self) -> Option<String> {
+    fn encode(&self) -> Option<Vec<u8>> {
         match self.to_bencode() {
             Some(value) => Some(encode(&value)),
             None => None,
@@ -26,8 +27,8 @@ pub trait Encodable {
 }
 
 impl Encodable for String {
-    fn encode(&self) -> Option<String> {
-        Some(format!("{}:{}", self.len(), self.to_string()))
+    fn encode(&self) -> Option<Vec<u8>> {
+        Some(format!("{}:{}", self.len(), self.to_string()).into_bytes())
     }
 
     fn to_bencode(&self) -> Option<BencodeValue> {
@@ -56,8 +57,9 @@ impl<T: Encodable> Encodable for Vec<T> {
     }
 }
 
-pub fn encode(value: &BencodeValue) -> String {
+pub fn encode(value: &BencodeValue) -> Vec<u8> {
     match value {
+        BencodeValue::ByteString(value) => encode_byte_string(value),
         BencodeValue::Dictionary(map) => encode_map(map),
         BencodeValue::Integer(value) => encode_integer(*value),
         BencodeValue::List(list) => encode_list(list),
@@ -65,24 +67,37 @@ pub fn encode(value: &BencodeValue) -> String {
     }
 }
 
-fn encode_map(map: &HashMap<String, BencodeValue>) -> String {
-    let mut output = String::from("d");
-
-    let mut keys: Vec<_> = map.keys().collect();
-    keys.sort();
-    for key in keys {
-        output.push_str(&format!("{}:{}{}", key.len(), key, encode(&map[key])));
-    }
-
-    output.push_str("e");
+fn encode_byte_string(value: &Vec<u8>) -> Vec<u8> {
+    let mut output = format!("{}:", value.len()).into_bytes();
+    output.extend(value.iter().copied());
     output
 }
 
-fn encode_integer(value: i64) -> String {
-    format!("i{}e", value)
+fn encode_map(map: &HashMap<String, BencodeValue>) -> Vec<u8> {
+    let mut keys: Vec<_> = map.keys().collect();
+    keys.sort();
+
+    let mut output = Vec::new();
+    for key in keys {
+        output.extend(&format!("{}:{}", key.len(), key).into_bytes());
+        output.extend(encode(&map[key]));
+    }
+
+    iter::once(b'd')
+        .chain(output.into_iter())
+        .chain(iter::once(b'e'))
+        .collect()
 }
 
-fn encode_list(list: &[BencodeValue]) -> String {
-    let elements: Vec<String> = list.iter().map(|element| encode(element)).collect();
-    format!("l{}e", elements.join(""))
+fn encode_integer(value: i64) -> Vec<u8> {
+    format!("i{}e", value).into_bytes()
+}
+
+fn encode_list(list: &[BencodeValue]) -> Vec<u8> {
+    let items = list.into_iter().map(|element| encode(element)).flatten();
+
+    iter::once(b'l')
+        .chain(items)
+        .chain(iter::once(b'e'))
+        .collect()
 }

@@ -1,4 +1,5 @@
 use super::*;
+use bencode::ByteString;
 use std::io::Result;
 
 #[test]
@@ -29,7 +30,7 @@ fn decode_info_succeeds() -> Result<()> {
     assert_eq!("name", info.name);
     assert_eq!(1, info.piece_length);
     assert_eq!(1, info.pieces.len());
-    assert_eq!("5", info.pieces);
+    assert_eq!(ByteString::new(vec![b'5']), info.pieces);
     assert!(info.length.is_some());
     assert_eq!(Some(11), info.length);
 
@@ -48,14 +49,16 @@ fn encode_info_succeeds() {
     let info = Info {
         name: "name".to_string(),
         piece_length: 5,
-        pieces: "pieces".to_string(),
+        pieces: ByteString::new("pieces".to_string().into_bytes()),
         length: Some(10),
         files: None,
     };
 
     let encoded = info.encode().unwrap();
     assert_eq!(
-        "d6:lengthi10e4:name4:name12:piece lengthi5e6:pieces6:piecese",
+        "d6:lengthi10e4:name4:name12:piece lengthi5e6:pieces6:piecese"
+            .to_string()
+            .into_bytes(),
         encoded
     );
 }
