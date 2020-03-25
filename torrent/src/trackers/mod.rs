@@ -18,14 +18,14 @@ struct GetTrackers {
 }
 
 #[derive(Decodable)]
-struct Peer {
-    ip: String,
-    port: u16,
+pub struct Peer {
+    pub ip: String,
+    pub port: u16,
 }
 
 pub struct TrackerInfo {
-    interval: u32,
-    peers: Vec<Peer>,
+    pub interval: u32,
+    pub peers: Vec<Peer>,
 }
 
 pub fn request_trackers(torrent: &Torrent, peer_id: &[u8; 20], port: u16) -> Result<TrackerInfo> {

@@ -5,9 +5,9 @@ use std::io::prelude::*;
 use std::io::Result;
 
 pub struct Client {
-    pub(crate) peer_id: [u8; 20],
-    pub(crate) port: u16,
-    pub(crate) tracker_info: TrackerInfo,
+    pub peer_id: [u8; 20],
+    pub port: u16,
+    pub tracker_info: TrackerInfo,
 }
 
 impl Client {
