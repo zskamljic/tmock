@@ -17,13 +17,11 @@ fn get_host_and_path_splits_correct() -> Result<()> {
 fn fetch_trackers() -> Result<()> {
     request_trackers(
         &Torrent::from_file("../torrents/archlinux-2020.02.01-x86_64.iso.torrent")?,
-        &Client {
-            peer_id: [
-                0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 9u8, b'A', b'B', b'C', b'D', b'E', b'F',
-                b'G', b'H', b'I', b'J', b'K',
-            ],
-            port: 6881,
-        },
+        &[
+            0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 9u8, b'A', b'B', b'C', b'D', b'E', b'F', b'G',
+            b'H', b'I', b'J', b'K',
+        ],
+        6881,
     )?;
 
     Ok(())
@@ -40,13 +38,11 @@ fn create_parameters_creates_query_url() {
     };
 
     let parameter_str = create_parameters(
-        &Client {
-            peer_id: [
-                0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 9u8, b'A', b'B', b'C', b'D', b'E', b'F',
-                b'G', b'H', b'I', b'J', b'K',
-            ],
-            port: 6881,
-        },
+        &[
+            0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 9u8, b'A', b'B', b'C', b'D', b'E', b'F', b'G',
+            b'H', b'I', b'J', b'K',
+        ],
+        6881,
         &info,
     );
 
