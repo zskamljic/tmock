@@ -1,21 +1,27 @@
+use crate::trackers::TrackerInfo;
 use crate::{trackers, Torrent};
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::Result;
 
 pub struct Client {
     pub(crate) peer_id: [u8; 20],
     pub(crate) port: u16,
+    pub(crate) tracker_info: TrackerInfo,
 }
 
 impl Client {
-    pub fn new(torrent: &Torrent, port: u16) -> Client {
-        let client = Client {
-            peer_id: random_bytes_id(),
-            port,
-        };
-        let peers = trackers::request_trackers(&torrent, &client);
+    pub fn new(torrent: &Torrent, port: u16) -> Result<Client> {
+        let peer_id = random_bytes_id();
+        let tracker_info = trackers::request_trackers(&torrent, &peer_id, port)?;
 
-        client
+        let client = Client {
+            peer_id,
+            port,
+            tracker_info,
+        };
+
+        Ok(client)
     }
 }
 

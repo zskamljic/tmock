@@ -1,6 +1,7 @@
 use super::*;
 use bencode::ByteString;
 use bencode::Decodable;
+use std::fs;
 use std::io::Result;
 
 #[test]
@@ -52,12 +53,12 @@ fn create_parameters_creates_query_url() {
     assert_eq!(
         format!(
             "{}{}{}{}{}{}",
-            "?info_hash=%7B%BB%B1%F8%A7%A9R%E3%B0I%F6k%F7%98%7D%2C%DB%8AL%85",
+            "?downloaded=0",
+            "&info_hash=%7B%BB%B1%F8%A7%A9R%E3%B0I%F6k%F7%98%7D%2C%DB%8AL%85",
+            "&left=5",
             "&peer_id=%00%01%02%03%04%05%06%07%09ABCDEFGHIJK",
             "&port=6881",
-            "&uploaded=0",
-            "&downloaded=0",
-            "&left=5"
+            "&uploaded=0"
         ),
         parameter_str
     );
@@ -69,4 +70,14 @@ fn url_encode_encodes_correct() {
     let output = url_encode(&input);
 
     assert_eq!("aA%00%28", output);
+}
+
+#[test]
+fn process_response_succeeds() -> Result<()> {
+    let request = fs::read_to_string("trackers_response.txt")?;
+    let response = process_response(&request)?;
+
+    assert_eq!(900, response.interval);
+    assert_eq!(50, response.peers.len());
+    Ok(())
 }

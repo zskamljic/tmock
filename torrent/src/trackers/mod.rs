@@ -1,31 +1,54 @@
 #[cfg(test)]
 mod tests;
 
-use crate::client::Client;
 use crate::{Info, Torrent};
-use bencode::Encodable;
+use bencode::{Decodable, Encodable};
+use bencode_derive::Decodable;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
 use std::net::TcpStream;
 use std::str;
 
-pub fn request_trackers(torrent: &Torrent, client: &Client) -> Result<()> {
+#[derive(Decodable)]
+struct GetTrackers {
+    #[bencode("failure reason")]
+    failure_reason: Option<String>,
+    interval: Option<u32>,
+    peers: Option<Vec<Peer>>,
+}
+
+#[derive(Decodable)]
+struct Peer {
+    ip: String,
+    port: u16,
+}
+
+pub struct TrackerInfo {
+    interval: u32,
+    peers: Vec<Peer>,
+}
+
+pub fn request_trackers(torrent: &Torrent, peer_id: &[u8; 20], port: u16) -> Result<TrackerInfo> {
     let (host, path) = get_host_and_path(&torrent.announce)?;
-    let parameters = create_parameters(&client, &torrent.info);
+    let parameters = create_parameters(peer_id, port, &torrent.info);
     let mut stream = TcpStream::connect(host)?;
 
-    stream.write_all(format!("GET {}{}\r\n\r\n", path, parameters).as_bytes())?;
+    stream
+        .write_all(format!("GET {}{} HTTP/1.1\n{}\r\n\r\n", path, parameters, host).as_bytes())?;
 
-    let mut buffer = [0u8; 512];
-    let read = stream.read(&mut buffer)?;
+    let mut buffer = vec![];
+    loop {
+        match stream.read_to_end(&mut buffer) {
+            Ok(_) => break,
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {}
+            Err(e) => return Err(e),
+        }
+    }
 
-    println!(
-        "Read: {}: {}",
-        read,
-        str::from_utf8(&buffer).expect("wasn't a valid string")
-    );
-
-    Ok(())
+    match str::from_utf8(&buffer) {
+        Ok(value) => process_response(value),
+        Err(error) => Err(Error::new(ErrorKind::InvalidData, error)),
+    }
 }
 
 fn get_host_and_path(url: &str) -> Result<(&str, &str)> {
@@ -46,22 +69,24 @@ fn get_host_and_path(url: &str) -> Result<(&str, &str)> {
     Ok((host, path))
 }
 
-fn create_parameters(client: &Client, info: &Info) -> String {
+fn create_parameters(peer_id: &[u8; 20], port: u16, info: &Info) -> String {
     let mut result = String::new();
-    result.push_str("?info_hash=");
+    result.push_str("?downloaded=0");
+    result.push_str("&info_hash=");
 
+    // Was decoded from bencode and never modified
+    // so it MUST work, otherwise bencode implementation is wrong
     let encoded = info.encode().unwrap();
 
     let hashed = sha1::sha1_bytes_as_bytes(&encoded);
     result.push_str(&url_encode(&hashed));
 
-    result.push_str("&peer_id=");
-    result.push_str(&url_encode(&client.peer_id));
-    result.push_str("&port=");
-    result.push_str(&format!("{}", client.port));
-    result.push_str("&uploaded=0");
-    result.push_str("&downloaded=0");
     result.push_str(&format!("&left={}", info.length.unwrap()));
+    result.push_str("&peer_id=");
+    result.push_str(&url_encode(peer_id));
+    result.push_str("&port=");
+    result.push_str(&format!("{}", port));
+    result.push_str("&uploaded=0");
     result
 }
 
@@ -79,4 +104,28 @@ fn url_encode(data: &[u8]) -> String {
         })
         .collect::<Vec<String>>()
         .join("")
+}
+
+fn process_response(response: &str) -> Result<TrackerInfo> {
+    let mut content = match response.lines().last() {
+        Some(value) => value.as_bytes(),
+        None => return Err(Error::new(ErrorKind::InvalidData, "no lines")),
+    };
+
+    let response = GetTrackers::read(&mut content)?;
+    if let Some(failure) = response.failure_reason {
+        return Err(Error::new(ErrorKind::Other, failure));
+    }
+
+    let interval = match response.interval {
+        Some(value) => value,
+        None => return Err(Error::new(ErrorKind::InvalidData, "interval missing")),
+    };
+
+    let peers = match response.peers {
+        Some(value) => value,
+        None => return Err(Error::new(ErrorKind::InvalidData, "peers missing")),
+    };
+
+    Ok(TrackerInfo { interval, peers })
 }

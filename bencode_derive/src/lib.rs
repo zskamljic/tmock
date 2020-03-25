@@ -17,7 +17,7 @@ pub fn derive_decodable(input: TokenStream) -> TokenStream {
         impl Decodable for #name {
             type Output = #name;
 
-            fn decode(value: &BencodeValue) -> std::io::Result<#name> {
+            fn decode(value: &bencode::BencodeValue) -> std::io::Result<#name> {
                 Ok(#name {
                     #fields
                 })
@@ -36,10 +36,10 @@ pub fn derive_encodable(input: TokenStream) -> TokenStream {
     let name = input.ident;
     let expanded = quote! {
         impl Encodable for #name {
-            fn to_bencode(&self) -> Option<BencodeValue> {
+            fn to_bencode(&self) -> Option<bencode::BencodeValue> {
                 let mut map = std::collections::HashMap::new();
                 #fields
-                Some(BencodeValue::Dictionary(map))
+                Some(bencode::BencodeValue::Dictionary(map))
             }
         }
     };
