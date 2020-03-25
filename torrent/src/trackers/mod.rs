@@ -4,7 +4,6 @@ mod tests;
 use crate::client::Client;
 use crate::{Info, Torrent};
 use bencode::Encodable;
-use std::fs::File;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind, Result};
 use std::net::TcpStream;
@@ -52,8 +51,6 @@ fn create_parameters(client: &Client, info: &Info) -> String {
     result.push_str("?info_hash=");
 
     let encoded = info.encode().unwrap();
-    let mut file = File::create("bencode").unwrap();
-    file.write_all(&encoded);
 
     let hashed = sha1::sha1_bytes_as_bytes(&encoded);
     result.push_str(&url_encode(&hashed));

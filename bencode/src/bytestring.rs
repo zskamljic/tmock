@@ -12,6 +12,10 @@ impl ByteString {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl Decodable for ByteString {
@@ -32,6 +36,6 @@ impl Encodable for ByteString {
     }
 }
 
-fn read_byte_string(value: &Vec<u8>) -> Result<ByteString> {
+fn read_byte_string(value: &[u8]) -> Result<ByteString> {
     Ok(ByteString(value.iter().copied().collect()))
 }

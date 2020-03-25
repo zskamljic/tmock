@@ -67,7 +67,7 @@ pub fn encode(value: &BencodeValue) -> Vec<u8> {
     }
 }
 
-fn encode_byte_string(value: &Vec<u8>) -> Vec<u8> {
+fn encode_byte_string(value: &[u8]) -> Vec<u8> {
     let mut output = format!("{}:", value.len()).into_bytes();
     output.extend(value.iter().copied());
     output
@@ -94,7 +94,7 @@ fn encode_integer(value: i64) -> Vec<u8> {
 }
 
 fn encode_list(list: &[BencodeValue]) -> Vec<u8> {
-    let items = list.into_iter().map(|element| encode(element)).flatten();
+    let items = list.iter().map(|element| encode(element)).flatten();
 
     iter::once(b'l')
         .chain(items)
