@@ -18,6 +18,13 @@ name = "directories"
 version = "0.1.0"
 
 [[package]]
+name = "mock"
+version = "0.1.0"
+dependencies = [
+ "rand 0.1.0",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -32,6 +39,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 1.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "rand"
+version = "0.1.0"
 
 [[package]]
 name = "runner"
@@ -62,6 +73,7 @@ version = "0.1.0"
 dependencies = [
  "bencode 0.1.0",
  "bencode_derive 0.1.0",
+ "rand 0.1.0",
  "sha1 0.1.0",
 ]
 

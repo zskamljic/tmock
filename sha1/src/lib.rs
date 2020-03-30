@@ -86,10 +86,10 @@ impl Sha1 {
                 (b ^ c ^ d, 0xCA62_C1D6_u32)
             };
 
-            let temp = add_with_mask!(left_rotate(a, 5), f, e, k, *item);
+            let temp = add_with_mask!(a.rotate_left(5), f, e, k, *item);
             e = d;
             d = c;
-            c = left_rotate(b, 30);
+            c = b.rotate_left(30);
             b = a;
             a = temp;
         }
@@ -154,13 +154,6 @@ fn fill_start(words: &mut [u32; 80], chunk: Vec<u8>) {
 
 fn extend(words: &mut [u32; 80]) {
     for i in 16..=79 {
-        words[i] = left_rotate(
-            words[i - 3] ^ words[i - 8] ^ words[i - 14] ^ words[i - 16],
-            1,
-        );
+        words[i] = (words[i - 3] ^ words[i - 8] ^ words[i - 14] ^ words[i - 16]).rotate_left(1);
     }
-}
-
-fn left_rotate(value: u32, bits: usize) -> u32 {
-    (value << bits) | (value >> (32 - bits))
 }

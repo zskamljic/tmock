@@ -96,6 +96,10 @@ fn url_encode(data: &[u8]) -> String {
             if (b'a'..=b'z').contains(value)
                 || (b'A'..=b'Z').contains(value)
                 || (b'0'..=b'9').contains(value)
+                || &b'.' == value
+                || &b'-' == value
+                || &b'_' == value
+                || &b'~' == value
             {
                 format!("{}", *value as char)
             } else {

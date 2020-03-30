@@ -1,0 +1,8 @@
+[package]
+name = "mock"
+version = "0.1.0"
+authors = ["zskamljic <zan.skamljic@equaleyes.com>"]
+edition = "2018"
+
+[dependencies]
+rand = { path = "../rand" }
