@@ -71,7 +71,7 @@ impl Client {
 
         let result = http::http_get(url, &parameters, Some(TRANSMISSION_HEADERS));
         match result {
-            Ok(value) => println!("Result: {}", value),
+            Ok(value) => println!("Result: {:?}", value),
             Err(error) => eprintln!("Error sending event {:?}: {}", event, error),
         }
     }

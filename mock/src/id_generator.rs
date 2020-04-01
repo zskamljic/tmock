@@ -13,15 +13,17 @@ pub fn generate_transmission_294_id() -> String {
     let base = TRANSMISSION_CHAR_POOL.len() as u8;
 
     let mut result = "-TR2940-".to_string();
-    let mut sum = 0;
+    let mut sum = 0u8;
     for i in 0..random_suffix.len() {
         random_suffix[i] %= base;
-        sum += random_suffix[i];
+        sum = sum.wrapping_add(random_suffix[i]);
         result.push(TRANSMISSION_CHAR_POOL[random_suffix[i] as usize] as char)
     }
 
     let checksum = base - sum % base;
-    result.push(TRANSMISSION_CHAR_POOL[checksum as usize] as char);
+    result.push(
+        TRANSMISSION_CHAR_POOL[(checksum % TRANSMISSION_CHAR_POOL.len() as u8) as usize] as char,
+    );
 
     result
 }

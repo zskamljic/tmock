@@ -6,7 +6,6 @@ use bencode::{Decodable, Encodable};
 use bencode_derive::Decodable;
 use http;
 use std::io::{Error, ErrorKind, Result};
-use std::str;
 
 #[derive(Decodable)]
 struct GetTrackers {
@@ -75,13 +74,9 @@ pub fn url_encode(data: &[u8]) -> String {
         .join("")
 }
 
-fn process_response(response: &str) -> Result<TrackerInfo> {
-    let mut content = match response.lines().last() {
-        Some(value) => value.as_bytes(),
-        None => return Err(Error::new(ErrorKind::InvalidData, "no lines")),
-    };
+fn process_response(response: &[u8]) -> Result<TrackerInfo> {
+    let response = GetTrackers::read_bytes(response)?;
 
-    let response = GetTrackers::read(&mut content)?;
     if let Some(failure) = response.failure_reason {
         return Err(Error::new(ErrorKind::Other, failure));
     }

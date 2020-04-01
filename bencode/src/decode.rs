@@ -1,5 +1,5 @@
 use super::{from_file, read, BencodeValue};
-use std::io::{BufRead, Error, ErrorKind, Result};
+use std::io::{BufRead, BufReader, Error, ErrorKind, Result};
 
 macro_rules! impl_decodable {
     ($($x:ty),*) => {
@@ -30,6 +30,11 @@ pub trait Decodable {
             Some(value) => Self::decode(value),
             None => Err(Error::new(ErrorKind::NotFound, "Value was not present")),
         }
+    }
+
+    fn read_bytes(bytes: &[u8]) -> Result<Self::Output> {
+        let mut reader = BufReader::new(bytes);
+        Self::read(&mut reader)
     }
 
     fn read<T: BufRead>(reader: &mut T) -> Result<Self::Output> {

@@ -61,7 +61,7 @@ fn url_encode_encodes_correct() {
 
 #[test]
 fn process_response_succeeds() -> Result<()> {
-    let request = fs::read_to_string("trackers_response.txt")?;
+    let request = fs::read("trackers_response.txt")?;
     let response = process_response(&request)?;
 
     assert_eq!(900, response.interval);

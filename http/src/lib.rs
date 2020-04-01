@@ -6,7 +6,7 @@ use std::io::{Error, ErrorKind, Result};
 use std::net::TcpStream;
 use std::str;
 
-pub fn http_get(url: &str, parameters: &str, extra_headers: Option<&str>) -> Result<String> {
+pub fn http_get(url: &str, parameters: &str, extra_headers: Option<&str>) -> Result<Vec<u8>> {
     let (host, path) = get_host_and_path(url)?;
     let extra_headers = match extra_headers {
         Some(value) => format!("\n{}", value),
@@ -31,11 +31,7 @@ pub fn http_get(url: &str, parameters: &str, extra_headers: Option<&str>) -> Res
         }
     }
 
-    println!("Response bytes: {:?}", buffer);
-    match str::from_utf8(&buffer) {
-        Ok(value) => Ok(get_http_content(value)),
-        Err(error) => Err(Error::new(ErrorKind::InvalidData, error)),
-    }
+    Ok(get_content(&buffer))
 }
 
 fn get_host_and_path(url: &str) -> Result<(&str, &str)> {
@@ -56,19 +52,20 @@ fn get_host_and_path(url: &str) -> Result<(&str, &str)> {
     Ok((host, path))
 }
 
-fn get_http_content(response: &str) -> String {
-    let mut body_string = String::new();
-    let mut body_started = false;
-    for line in response.lines() {
-        if body_started {
-            body_string.push_str(line);
-            continue;
-        }
-        if line.is_empty() {
-            body_started = true;
-            continue;
+fn get_content(buffer: &[u8]) -> Vec<u8> {
+    let mut newline_prefix = false;
+    for i in 1..buffer.len() {
+        println!("Buffer: {}", buffer[i]);
+        if buffer[i] == 10 && buffer[i - 1] == 13 {
+            if newline_prefix {
+                return buffer[i + 1..].to_vec();
+            }
+            newline_prefix = true;
+        } else if buffer[i] != 13 {
+            newline_prefix = false;
         }
     }
 
-    body_string
+    println!("No content found!");
+    Vec::new()
 }
