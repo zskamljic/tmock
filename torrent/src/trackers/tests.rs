@@ -5,15 +5,6 @@ use std::fs;
 use std::io::Result;
 
 #[test]
-fn get_host_and_path_splits_correct() -> Result<()> {
-    let (host, path) = get_host_and_path("http://tracker.archlinux.org:6969/announce")?;
-
-    assert_eq!("tracker.archlinux.org:6969", host);
-    assert_eq!("/announce", path);
-    Ok(())
-}
-
-#[test]
 fn fetch_trackers() -> Result<()> {
     request_trackers(
         &Torrent::from_file("../torrents/archlinux-2020.02.01-x86_64.iso.torrent")?,

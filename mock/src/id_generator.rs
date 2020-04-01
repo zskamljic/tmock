@@ -21,7 +21,6 @@ pub fn generate_transmission_294_id() -> String {
     }
 
     let checksum = base - sum % base;
-    println!("{:?}", random_suffix);
     result.push(TRANSMISSION_CHAR_POOL[checksum as usize] as char);
 
     result

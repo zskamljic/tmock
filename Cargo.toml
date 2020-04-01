@@ -3,6 +3,7 @@ members = [
     "bencode",
     "bencode_derive",
     "directories",
+    "http",
     "runner",
     "mock",
     "rand",
