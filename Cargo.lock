@@ -25,6 +25,8 @@ version = "0.1.0"
 name = "mock"
 version = "0.1.0"
 dependencies = [
+ "bencode 0.1.0",
+ "bencode_derive 0.1.0",
  "http 0.1.0",
  "rand 0.1.0",
  "torrent 0.1.0",

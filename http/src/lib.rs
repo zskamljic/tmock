@@ -55,7 +55,6 @@ fn get_host_and_path(url: &str) -> Result<(&str, &str)> {
 fn get_content(buffer: &[u8]) -> Vec<u8> {
     let mut newline_prefix = false;
     for i in 1..buffer.len() {
-        println!("Buffer: {}", buffer[i]);
         if buffer[i] == 10 && buffer[i - 1] == 13 {
             if newline_prefix {
                 return buffer[i + 1..].to_vec();

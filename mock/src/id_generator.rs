@@ -1,10 +1,6 @@
 use rand;
 
-const TRANSMISSION_CHAR_POOL: [u8; 36] = [
-    b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'a', b'b', b'c', b'd', b'e', b'f',
-    b'g', b'h', b'i', b'j', b'k', b'l', b'm', b'n', b'o', b'p', b'q', b'r', b's', b't', b'u', b'v',
-    b'w', b'x', b'y', b'z',
-];
+const TRANSMISSION_CHAR_POOL: [u8; 36] = *b"0123456789abcdefghijklmnopqrstuvwxyz";
 
 pub fn generate_transmission_294_id() -> String {
     // 20 - "-TR2940-".len() - 1 (checksum)

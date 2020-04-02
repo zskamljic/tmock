@@ -26,12 +26,12 @@ impl Torrent {
 
 #[derive(Decodable, Encodable)]
 pub struct Info {
-    name: String,
+    pub name: String,
     #[bencode("piece length")]
-    piece_length: usize,
-    pieces: ByteString,
-    length: Option<usize>,
-    files: Option<Vec<File>>,
+    pub piece_length: usize,
+    pub pieces: ByteString,
+    pub length: Option<usize>,
+    pub files: Option<Vec<File>>,
 }
 
 #[derive(Decodable, Encodable)]
