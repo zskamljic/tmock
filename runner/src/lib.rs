@@ -1,4 +1,5 @@
-use std::collections::hash_map::Entry;
+use mock::Announcer;
+use mock::Client;
 use std::collections::HashMap;
 use std::fs;
 use std::hash::BuildHasher;
@@ -38,29 +39,36 @@ pub fn load_existing_entries() -> Result<HashMap<String, Torrent>> {
         .collect())
 }
 
-pub fn add_file_entry<S: BuildHasher>(map: &mut HashMap<String, Torrent, S>, file: &str) {
-    if let Ok(value) = Torrent::from_file(file) {
-        map.insert(file.to_string(), value);
-    }
-    // TODO: report file added
-}
-
-pub fn remove_file_entry<S: BuildHasher>(map: &mut HashMap<String, Torrent, S>, file: &str) {
-    if let Entry::Occupied(entry) = map.entry(file.to_string()) {
-        entry.remove();
-    }
-    // TODO: report file removed
-}
-
-pub fn move_file_entry<S: BuildHasher>(
-    map: &mut HashMap<String, Torrent, S>,
-    from: String,
-    to: String,
+pub fn load_and_store<'a, S: BuildHasher>(
+    hashes: &mut HashMap<String, String, S>,
+    announcers: &mut HashMap<String, Announcer<'a>, S>,
+    file: String,
+    client: &'a Client,
 ) {
-    if let Entry::Occupied(value) = map.entry(from) {
-        let value = value.remove();
-        map.insert(to, value);
+    if let Ok(torrent) = Torrent::from_file(&file) {
+        store_announcer(hashes, announcers, file, torrent, &client);
     }
 }
 
-// TODO: add tests
+pub fn remove_torrent<S: BuildHasher>(
+    hashes: &mut HashMap<String, String, S>,
+    announcers: &mut HashMap<String, Announcer, S>,
+    file: &str,
+) {
+    if let Some(hash) = hashes.remove(file) {
+        announcers.remove(&hash);
+    }
+}
+
+pub fn store_announcer<'a, S: BuildHasher>(
+    hashes: &mut HashMap<String, String, S>,
+    announcers: &mut HashMap<String, Announcer<'a>, S>,
+    key: String,
+    torrent: Torrent,
+    client: &'a Client,
+) {
+    let info_hash = torrent.get_info_hash();
+    let announcer = Announcer::new(torrent, &client);
+    announcers.insert(info_hash.to_string(), announcer);
+    hashes.insert(key, info_hash);
+}

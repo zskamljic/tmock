@@ -57,6 +57,7 @@ name = "runner"
 version = "0.1.0"
 dependencies = [
  "directories 0.1.0",
+ "mock 0.1.0",
  "torrent 0.1.0",
  "watcher 0.1.0",
 ]
