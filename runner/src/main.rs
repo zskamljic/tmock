@@ -1,6 +1,10 @@
+mod config;
+mod state;
+
+use config::Config;
 use directories;
 use mock::Client;
-use std::collections::HashMap;
+use state::State;
 use std::fmt::Display;
 use std::process;
 use std::sync::mpsc::{self, Sender};
@@ -19,44 +23,35 @@ fn main() {
     for key in existing.keys() {
         println!("\t{}", key);
     }
-    let client = Client::new();
 
-    let mut hashes = HashMap::new();
-    let mut announcers = HashMap::new();
+    let config = match Config::new() {
+        Ok(value) => value,
+        Err(error) => {
+            log_exit(error);
+            return;
+        }
+    };
+    let client = Client::new();
+    let mut state = State::new(&client, config.min, config.max);
 
     for (key, torrent) in existing {
-        runner::store_announcer(&mut hashes, &mut announcers, key, torrent, &client);
+        state.add_announcer(key, torrent);
     }
 
     let (sender, receiver) = mpsc::channel();
-    thread::spawn(move || {
-        observe(sender);
-    });
+    thread::spawn(move || observe(sender));
 
     loop {
         while let Ok(value) = receiver.try_recv() {
             match value {
-                ObservationEvent::Created(file) => {
-                    runner::load_and_store(&mut hashes, &mut announcers, file, &client)
-                }
-                ObservationEvent::Deleted(file) => {
-                    runner::remove_torrent(&mut hashes, &mut announcers, &file)
-                }
-                ObservationEvent::Modified(file) => {
-                    runner::remove_torrent(&mut hashes, &mut announcers, &file);
-                    runner::load_and_store(&mut hashes, &mut announcers, file, &client)
-                }
-                ObservationEvent::Move { from, to } => {
-                    if let Some(value) = hashes.remove(&from) {
-                        hashes.insert(to, value);
-                    }
-                }
+                ObservationEvent::Created(file) => state.load_new(file),
+                ObservationEvent::Deleted(file) => state.remove(file),
+                ObservationEvent::Modified(file) => state.modified(file),
+                ObservationEvent::Move { from, to } => state.move_file(from, to),
             }
         }
 
-        for (_, value) in announcers.iter_mut() {
-            value.announce();
-        }
+        state.announce_all();
 
         thread::sleep(Duration::from_secs(1));
     }
