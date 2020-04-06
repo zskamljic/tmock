@@ -1,5 +1,6 @@
 use crate::tracker_updates::TrackerUpdates;
 use crate::Client;
+use rand;
 use std::time::{SystemTime, UNIX_EPOCH};
 use torrent::Torrent;
 
@@ -27,7 +28,7 @@ impl<'a> Announcer<'a> {
         }
     }
 
-    pub fn announce(&mut self) {
+    pub fn announce(&mut self, min_speed: usize, max_speed: usize) {
         if let Some(info) = &self.tracker_info {
             let now = current_time_seconds();
             if now - self.last_announce < info.interval {
@@ -35,17 +36,22 @@ impl<'a> Announcer<'a> {
             }
         }
 
-        if let Some(value) = self.select_announce_function() {
+        if let Some(value) = self.select_announce_function(min_speed, max_speed) {
             self.update_trackers(value);
         } else {
             println!("Failed to announce {}", self.name);
         }
     }
 
-    fn select_announce_function(&mut self) -> Option<TrackerUpdates> {
+    fn select_announce_function(
+        &mut self,
+        min_speed: usize,
+        max_speed: usize,
+    ) -> Option<TrackerUpdates> {
         if self.tracker_info.is_none() {
             self.client.send_start(self)
         } else {
+            self.calculate_upload(min_speed, max_speed);
             self.client.send_update(self)
         }
     }
@@ -57,6 +63,20 @@ impl<'a> Announcer<'a> {
         );
         self.last_announce = current_time_seconds();
         self.tracker_info = Some(info);
+    }
+
+    fn calculate_upload(&mut self, min_speed: usize, max_speed: usize) {
+        if let Some(value) = &self.tracker_info {
+            if value.leechers == 0 {
+                return;
+            }
+
+            let now = current_time_seconds();
+            let delay = now - self.last_announce;
+            self.uploaded += (0..=delay)
+                .map(|_| rand::random_usize(min_speed, max_speed))
+                .sum::<usize>();
+        }
     }
 }
 

@@ -8,7 +8,7 @@ fn report_start_update_end() -> Result<()> {
     let torrent = Torrent::from_file("../torrents/archlinux-2020.02.01-x86_64.iso.torrent")?;
 
     let mut announcer = Announcer::new(torrent, &client);
-    announcer.announce();
+    announcer.announce(0, 0);
 
     Ok(())
 }

@@ -53,7 +53,7 @@ impl<'a> State<'a> {
 
     pub fn announce_all(&mut self) {
         for value in self.announcers.values_mut() {
-            value.announce();
+            value.announce(self.min_speed, self.max_speed);
         }
     }
 }

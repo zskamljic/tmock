@@ -50,7 +50,7 @@ fn parse_to_map(value: String) -> HashMap<String, String> {
 
 fn load_and_parse(map: &HashMap<String, String>, key: &str) -> Result<usize, String> {
     if let Some(value) = map.get(key) {
-        if let Ok(value) = value.parse() {
+        if let Ok(value) = value.replace('_', "").parse() {
             Ok(value)
         } else {
             Err(format!("Value for {} must be a positive integer.", key))

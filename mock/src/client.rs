@@ -76,7 +76,10 @@ impl Client {
 
         let result = http::http_get(url, &parameters, Some(TRANSMISSION_HEADERS));
         match result {
-            Ok(value) => TrackerUpdates::decode(&value),
+            Ok(value) => {
+                println!("Response: {}", std::str::from_utf8(&value).unwrap());
+                TrackerUpdates::decode(&value)
+            }
             Err(error) => {
                 eprintln!("Error sending event {:?}: {}", event, error);
                 None
