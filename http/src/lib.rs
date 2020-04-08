@@ -16,7 +16,7 @@ pub fn http_get(url: &str, parameters: &str, extra_headers: Option<&str>) -> Res
     let mut stream = TcpStream::connect(host)?;
     stream.write_all(
         format!(
-            "GET {}{} HTTP/1.1\n{}{}\r\n\r\n",
+            "GET {}{} HTTP/1.1\nHost: {}{}\r\n\r\n",
             path, parameters, host, extra_headers
         )
         .as_bytes(),

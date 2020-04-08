@@ -76,10 +76,7 @@ impl Client {
 
         let result = http::http_get(url, &parameters, Some(TRANSMISSION_HEADERS));
         match result {
-            Ok(value) => {
-                println!("Response: {}", std::str::from_utf8(&value).unwrap());
-                TrackerUpdates::decode(&value)
-            }
+            Ok(value) => TrackerUpdates::decode(&value),
             Err(error) => {
                 eprintln!("Error sending event {:?}: {}", event, error);
                 None
@@ -89,7 +86,7 @@ impl Client {
 
     fn create_parameters(&self, info_hash: &str, uploaded: usize, peer_num: u32) -> String {
         format!("?info_hash={}&peer_id={}&port={}&uploaded={}&downloaded=0&left=0&numwant={}&key={}&compact=1&supportcrypto=1",
-    info_hash, self.peer_id, self.port, uploaded,peer_num, self.key)
+                info_hash, self.peer_id, self.port, uploaded,peer_num, self.key)
     }
 }
 

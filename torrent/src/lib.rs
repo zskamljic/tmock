@@ -32,6 +32,8 @@ pub struct Info {
     pub pieces: ByteString,
     pub length: Option<usize>,
     pub files: Option<Vec<File>>,
+    pub private: Option<u16>,
+    pub source: Option<String>,
 }
 
 #[derive(Decodable, Encodable)]

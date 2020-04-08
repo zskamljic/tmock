@@ -26,6 +26,8 @@ fn create_parameters_creates_query_url() {
         pieces: ByteString::new(vec![b'a', b'b', b'c', b'd']),
         length: Some(5),
         files: None,
+        private: None,
+        source: None,
     };
 
     let parameter_str = create_parameters(

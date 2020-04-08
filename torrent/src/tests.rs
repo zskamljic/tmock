@@ -52,6 +52,8 @@ fn encode_info_succeeds() {
         pieces: ByteString::new("pieces".to_string().into_bytes()),
         length: Some(10),
         files: None,
+        private: Some(1),
+        source: Some("tracker".to_string()),
     };
 
     let encoded = info.encode().unwrap();
