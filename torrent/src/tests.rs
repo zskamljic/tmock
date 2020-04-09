@@ -52,15 +52,13 @@ fn encode_info_succeeds() {
         pieces: ByteString::new("pieces".to_string().into_bytes()),
         length: Some(10),
         files: None,
-        private: Some(1),
-        source: Some("tracker".to_string()),
+        private: None,
+        source: None,
     };
 
     let encoded = info.encode().unwrap();
     assert_eq!(
-        "d6:lengthi10e4:name4:name12:piece lengthi5e6:pieces6:piecese"
-            .to_string()
-            .into_bytes(),
+        b"d6:lengthi10e4:name4:name12:piece lengthi5e6:pieces6:piecese".to_vec(),
         encoded
     );
 }

@@ -8,18 +8,3 @@ fn get_host_and_path_splits_correct() -> Result<()> {
     assert_eq!("/announce", path);
     Ok(())
 }
-
-#[test]
-fn get_content_returns_correct() {
-    let input = b"one\r\ntwo\r\nthree\r\n\r\nfour
-five
-six\r\nseven\r\n\r\neight";
-    let content = get_content(&input[..]);
-    assert_eq!(
-        b"four
-five
-six\r\nseven\r\n\r\neight"
-            .to_vec(),
-        content
-    );
-}
