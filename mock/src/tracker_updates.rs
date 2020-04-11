@@ -11,8 +11,7 @@ impl TrackerUpdates {
     pub fn decode(data: &[u8]) -> Option<TrackerUpdates> {
         let trackers = match CompactTrackers::read_bytes(data) {
             Ok(value) => value,
-            Err(error) => {
-                eprintln!("Error decoding response: {}", error);
+            Err(_) => {
                 return None;
             }
         };

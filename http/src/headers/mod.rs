@@ -4,21 +4,35 @@ mod tests;
 use std::collections::HashMap;
 use std::io::Result;
 
+/// Enum to keep track of current state
 enum State {
+    /// Reading status line
     Status,
+    /// Expecting to read next header
     HeaderNext,
+    /// Reading header
     Header,
+    /// Encountered body start
     Body,
 }
 
+/// Holder for header information.
 pub(crate) struct HttpHeaders {
+    /// Holds the current state
     state: State,
+    /// Whether or not last character was \r
     carriage_return: bool,
+    /// The protocol line that was read (e.g. 'HTTP/1.1 200 OK')
     protocol: String,
+    /// The headers that have been read so far, with their values.
+    /// Does not support multiple headers with same name.
     pub(super) headers: HashMap<String, String>,
 }
 
 impl HttpHeaders {
+    /// Creates a new instance with default values.
+    ///
+    /// Public in crate for testing purposes.
     pub(crate) fn new() -> HttpHeaders {
         HttpHeaders {
             state: State::Status,
@@ -28,6 +42,7 @@ impl HttpHeaders {
         }
     }
 
+    /// Handles next byte and updates internal state
     fn handle_next_http(&mut self, buffer: &mut String, byte: u8) {
         if self.carriage_return && byte == 10 {
             self.carriage_return = false;
@@ -50,6 +65,7 @@ impl HttpHeaders {
         self.carriage_return = false;
     }
 
+    /// Stores the header to internal HashMap.
     fn add_header(&mut self, header_line: String) {
         let split_index = header_line.find(": ");
 
@@ -57,7 +73,7 @@ impl HttpHeaders {
             Some(index) => {
                 let (name, value) = header_line.split_at(index);
                 self.headers
-                    .insert(name.to_lowercase().to_string(), value[2..].to_string());
+                    .insert(name.to_lowercase(), value[2..].to_string());
             }
             None => {
                 self.headers.insert(header_line, String::new());
@@ -66,6 +82,7 @@ impl HttpHeaders {
     }
 }
 
+/// Attempts to read http headers.
 pub(crate) fn handle_http_headers<T>(bytes: &mut T) -> Result<HttpHeaders>
 where
     T: Iterator<Item = Result<u8>>,

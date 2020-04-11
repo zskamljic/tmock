@@ -12,6 +12,7 @@ pub struct Announcer<'a> {
     name: String,
     tracker_info: Option<TrackerUpdates>,
     last_announce: u64,
+    failed: u8,
 }
 
 impl<'a> Announcer<'a> {
@@ -25,6 +26,7 @@ impl<'a> Announcer<'a> {
             name: torrent.info.name,
             tracker_info: None,
             last_announce: 0,
+            failed: 0,
         }
     }
 
@@ -37,9 +39,11 @@ impl<'a> Announcer<'a> {
         }
 
         if let Some(value) = self.select_announce_function(min_speed, max_speed) {
+            self.failed = 0;
             self.update_trackers(value);
         } else {
             println!("Failed to announce {}", self.name);
+            self.failed += 1;
         }
     }
 
@@ -77,6 +81,10 @@ impl<'a> Announcer<'a> {
                 .map(|_| rand::random_usize(min_speed, max_speed))
                 .sum::<usize>();
         }
+    }
+
+    pub fn fail_count(&self) -> u8 {
+        self.failed
     }
 }
 

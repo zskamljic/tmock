@@ -8,14 +8,21 @@ const CONTENT_LENGTH: &str = "content-length";
 const TRANSFER_ENCODING: &str = "transfer-encoding";
 const ENCODING_CHUNKED: &str = "chunked";
 
+/// State represents the current internal state of body
+/// reader.
 struct State {
+    /// The body that has been read so far
     result: Vec<u8>,
+    /// Buffer for chunked encoding length
     count: String,
+    /// Whether or not the last character was \r
     carriage_return: bool,
+    /// Whether or not we're reading actual body bytes
     reading_body: bool,
 }
 
 impl State {
+    /// Creates new instance with default values
     fn new() -> State {
         State {
             result: vec![],
@@ -25,11 +32,18 @@ impl State {
         }
     }
 
+    /// Sets flags for when \r was encountered
     fn read_carriage_return(&mut self) {
         self.carriage_return = true;
         self.reading_body = !self.reading_body;
     }
 
+    /// Should be called after reading \n
+    ///
+    /// Checks if \r has been seen before and reads the body.
+    /// Returns Ok(true) if last chunk was read, Ok(false) if
+    /// more data is required and Err if an error ocurred while
+    /// reading.
     fn read_newline<T>(&mut self, bytes: &mut T) -> Result<bool>
     where
         T: Iterator<Item = Result<u8>>,
@@ -52,6 +66,10 @@ impl State {
     }
 }
 
+/// Attempts to read the body of a http request.
+///
+/// Supports plain and chunked encodings.
+/// Returns a `Vec<u8>`, as the data may not be UTF-8 valid.
 pub(crate) fn handle_http_body<T>(
     headers: &HashMap<String, String>,
     bytes: &mut T,
@@ -74,6 +92,9 @@ where
     Ok(bytes.filter_map(|x| x.ok()).collect())
 }
 
+/// Reads chunked http body.
+///
+/// Attempts to read chunk length and content if applicable.
 fn handle_http_chunked_body<T>(bytes: &mut T) -> Result<Vec<u8>>
 where
     T: Iterator<Item = Result<u8>>,
@@ -108,6 +129,10 @@ where
     ))
 }
 
+/// Reads individual chunk.
+///
+/// Tries to read `count` bytes, appending them to `result` if possible.
+/// If chunk of length 0 is encountered returns Ok(true).
 fn read_chunk<T>(count: &str, result: &mut Vec<u8>, bytes: &mut T) -> Result<bool>
 where
     T: Iterator<Item = Result<u8>>,
@@ -120,6 +145,6 @@ where
             result.extend(bytes.take(value).flat_map(|x| x.ok()));
             Ok(false)
         }
-        Err(error) => return Err(Error::new(ErrorKind::InvalidData, format!("{}", error))),
+        Err(error) => Err(Error::new(ErrorKind::InvalidData, format!("{}", error))),
     }
 }
