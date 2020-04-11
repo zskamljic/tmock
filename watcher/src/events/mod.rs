@@ -25,15 +25,15 @@ pub(crate) struct FileEvent {
 #[derive(Debug)]
 pub(crate) enum EventType {
     /// File was modified
-    MODIFY,
+    Modify,
     /// File was moved (has multiple parts)
-    MOVED,
+    Moved,
     /// File was created
-    CREATED,
+    Created,
     /// File was deleted
-    DELETED,
+    Deleted,
     /// An unmapped event occurred
-    UNKNOWN,
+    Unknown,
 }
 
 /// Reads the event from given file descriptor
@@ -72,15 +72,15 @@ fn consume(buffer: &[u8]) -> (usize, FileEvent) {
         .collect::<Vec<&str>>()[0];
 
     let event_type = if event.mask & unix::IN_MODIFY != 0 {
-        EventType::MODIFY
+        EventType::Modify
     } else if event.mask & unix::IN_MOVED != 0 {
-        EventType::MOVED
+        EventType::Moved
     } else if event.mask & unix::IN_CREATE != 0 {
-        EventType::CREATED
+        EventType::Created
     } else if event.mask & unix::IN_DELETE != 0 {
-        EventType::DELETED
+        EventType::Deleted
     } else {
-        EventType::UNKNOWN
+        EventType::Unknown
     };
 
     let event = FileEvent {

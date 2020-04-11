@@ -48,10 +48,10 @@ fn process_event(
     sender: &Sender<ObservationEvent>,
 ) {
     let event = match event.event_type {
-        EventType::CREATED => Some(ObservationEvent::Created(event.file_name)),
-        EventType::DELETED => Some(ObservationEvent::Deleted(event.file_name)),
-        EventType::MODIFY => Some(ObservationEvent::Modified(event.file_name)),
-        EventType::MOVED => process_move_event(cookie_map, event),
+        EventType::Created => Some(ObservationEvent::Created(event.file_name)),
+        EventType::Deleted => Some(ObservationEvent::Deleted(event.file_name)),
+        EventType::Modify => Some(ObservationEvent::Modified(event.file_name)),
+        EventType::Moved => process_move_event(cookie_map, event),
         _ => None,
     };
 
@@ -87,7 +87,7 @@ mod tests {
         let mut cookies = HashMap::new();
         let event = FileEvent {
             cookie: 0,
-            event_type: EventType::MODIFY,
+            event_type: EventType::Modify,
             file_name: String::from("file"),
         };
 
@@ -104,7 +104,7 @@ mod tests {
 
         let event = FileEvent {
             cookie: 0,
-            event_type: EventType::MODIFY,
+            event_type: EventType::Modify,
             file_name: String::from("target"),
         };
 
