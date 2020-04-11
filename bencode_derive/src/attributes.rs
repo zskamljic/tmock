@@ -1,6 +1,16 @@
 use proc_macro2::Ident;
 use syn::{Attribute, Lit, Meta, NestedMeta};
 
+/// Handles the attributes seen on the field.
+///
+/// Used to rename field when encoding and decoding. Will panic if more
+/// than one attribute is found, as there is no way to determine which
+/// one to take.
+///
+/// # Arguments
+///
+/// * `name` - the identifier for which to process the attribute
+/// * `attributes` - the slice of attributes to search for
 pub fn process_field_attributes(name: &Option<Ident>, attributes: &[Attribute]) -> String {
     let filtered: Vec<&Attribute> = attributes
         .iter()
@@ -19,6 +29,9 @@ pub fn process_field_attributes(name: &Option<Ident>, attributes: &[Attribute]) 
     }
 }
 
+/// Parse the name of the field, returning the renamed value of present,
+///
+/// Panics if the element is not a string literal.
 fn parse_field_name(elements: Vec<NestedMeta>) -> String {
     if elements.len() != 1 {
         panic!("Expected single name element");
