@@ -3,13 +3,19 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::sync::mpsc::{Receiver, Sender};
 
+/// Public enum specifying the data relevant to the event
 pub enum ObservationEvent {
+    /// The contained file has changed
     Created(String),
+    /// The contained file has been deleted
     Deleted(String),
+    /// The contained file has been modified
     Modified(String),
+    /// The file has been moved
     Move { from: String, to: String },
 }
 
+/// Start a loop to process the events, stopping it if signal is sent through receiver
 pub fn observe(receiver: Receiver<()>, sender: Sender<ObservationEvent>, file_descriptor: i32) {
     let mut cookie_map = HashMap::new();
 
@@ -24,6 +30,7 @@ pub fn observe(receiver: Receiver<()>, sender: Sender<ObservationEvent>, file_de
     }
 }
 
+/// Process all events that were sent with the cookies that were seen before
 fn process_events(
     cookie_map: &mut HashMap<u32, String>,
     events: Vec<FileEvent>,
@@ -34,6 +41,7 @@ fn process_events(
     }
 }
 
+/// Process and map individual event
 fn process_event(
     cookie_map: &mut HashMap<u32, String>,
     event: FileEvent,
@@ -52,6 +60,8 @@ fn process_event(
     }
 }
 
+/// Handle file movement, storing it in cookies or sending the event if all
+/// parts have been consumed.
 fn process_move_event(
     cookie_map: &mut HashMap<u32, String>,
     event: FileEvent,

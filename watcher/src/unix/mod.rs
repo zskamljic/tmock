@@ -11,6 +11,7 @@ pub const IN_MOVED: u32 = (IN_MOVED_FROM | IN_MOVED_TO);
 pub const IN_CREATE: u32 = 0x0000_0100;
 pub const IN_DELETE: u32 = 0x0000_0200;
 
+/// Start observing, returning file descriptor if successful
 pub fn observation_init() -> Result<i32, Error> {
     unsafe {
         let file_descriptor = inotify_init();
@@ -21,6 +22,7 @@ pub fn observation_init() -> Result<i32, Error> {
     }
 }
 
+/// Start watching the path for file descriptor
 pub fn add_watch(file_descriptor: i32, directory: &str) -> Result<i32, Error> {
     unsafe {
         let watch_descriptor = inotify_add_watch(
@@ -35,6 +37,7 @@ pub fn add_watch(file_descriptor: i32, directory: &str) -> Result<i32, Error> {
     }
 }
 
+/// C structure representing the static part of event
 #[derive(Debug)]
 #[repr(C)]
 pub struct InotifyEvent {
@@ -44,6 +47,7 @@ pub struct InotifyEvent {
     pub length: u32,
 }
 
+/// Bindings for the functions for inotify
 extern "C" {
     fn inotify_init() -> i32;
     #[allow(improper_ctypes)]

@@ -11,6 +11,7 @@ use std::thread::JoinHandle;
 
 pub use processing::ObservationEvent;
 
+/// Utility class to simplify observation of filesystem
 pub struct Watcher {
     file_descriptor: i32,
     watch_descriptor: i32,
@@ -20,6 +21,7 @@ pub struct Watcher {
 }
 
 impl Watcher {
+    /// Select the directory to observe and prepare for observation
     pub fn new(directory: &str) -> IoResult<Watcher> {
         let file_descriptor = unix::observation_init()?;
         let (sender, receiver) = mpsc::channel();
@@ -39,6 +41,8 @@ impl Watcher {
         }
     }
 
+    /// Start the observation and return a receiver for the events that will
+    /// be published
     pub fn start_observation(&mut self) -> Result<Receiver<ObservationEvent>, String> {
         let stop_receiver = match self.receiver.take() {
             Some(receiver) => receiver,
@@ -56,6 +60,7 @@ impl Watcher {
 }
 
 impl Drop for Watcher {
+    /// Cleanup after instance is dropped
     fn drop(&mut self) {
         self.sender.send(()).unwrap();
         unsafe {
