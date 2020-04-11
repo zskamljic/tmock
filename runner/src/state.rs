@@ -55,5 +55,6 @@ impl<'a> State<'a> {
         for value in self.announcers.values_mut() {
             value.announce(self.min_speed, self.max_speed);
         }
+        self.announcers.retain(|_, v| v.fail_count() < 5);
     }
 }
