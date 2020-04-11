@@ -9,21 +9,32 @@ const TRANSMISSION_HEADERS: &str = "User-Agent: Transmission/2.94
 Accept: */*
 Accept-Encoding: gzip;q=1.0, deflate, identity";
 
+/// Event to announce
 #[derive(Debug, PartialEq)]
 enum Event {
+    /// The client has started seeding
     STARTED,
+    /// The client stopped seeding
     STOPPED,
+    /// The client is sending an update
     EMPTY,
 }
 
+/// Client is used to send the updates or announcements
+/// to remote, it handles peer ID generation and port
+/// selection.
 #[derive(Default)]
 pub struct Client {
+    /// Unique key for this client, in case IP changes
     key: String,
+    /// Unique peer ID for this client
     peer_id: String,
+    /// The port we supposedly use for P2P
     port: u16,
 }
 
 impl Client {
+    /// Creates new client.
     pub fn new() -> Client {
         Client {
             key: key_generator::generate_i32_hex_key(),
@@ -32,6 +43,7 @@ impl Client {
         }
     }
 
+    /// Sends a start event
     pub fn send_start(&self, announcer: &Announcer) -> Option<TrackerUpdates> {
         self.send_event(
             &announcer.announce_url,
@@ -41,6 +53,7 @@ impl Client {
         )
     }
 
+    /// Sends an update event
     pub fn send_update(&self, announcer: &Announcer) -> Option<TrackerUpdates> {
         self.send_event(
             &announcer.announce_url,
@@ -50,6 +63,7 @@ impl Client {
         )
     }
 
+    /// Sends a stop event
     pub fn send_stop(&self, announcer: &Announcer) -> Option<TrackerUpdates> {
         self.send_event(
             &announcer.announce_url,
@@ -59,6 +73,10 @@ impl Client {
         )
     }
 
+    /// Sends an event as per the parameters
+    ///
+    /// Automatically selects the extra query parameters, required peers and decodes
+    /// the response as bencode value.
     fn send_event(
         &self,
         url: &str,
@@ -81,12 +99,14 @@ impl Client {
         }
     }
 
+    /// Creates a parameter string the same was Transmission 2.94 does.
     fn create_parameters(&self, info_hash: &str, uploaded: usize, peer_num: u32) -> String {
         format!("?info_hash={}&peer_id={}&port={}&uploaded={}&downloaded=0&left=0&numwant={}&key={}&compact=1&supportcrypto=1",
                 info_hash, self.peer_id, self.port, uploaded,peer_num, self.key)
     }
 }
 
+/// Tries to find the first valid port.
 fn find_available_port() -> u16 {
     for port in 40_000..=50_000 {
         match TcpListener::bind(format!("127.0.0.1:{}", port)) {

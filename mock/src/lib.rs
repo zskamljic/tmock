@@ -1,3 +1,6 @@
+//! # mock
+//!
+//! Mock is a crate used to mock torrent uploads to given announcers.
 mod announcer;
 mod client;
 mod compact_trackers;

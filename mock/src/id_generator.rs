@@ -2,6 +2,7 @@ use rand;
 
 const TRANSMISSION_CHAR_POOL: [u8; 36] = *b"0123456789abcdefghijklmnopqrstuvwxyz";
 
+/// Generate a peer_id like Transmission 2.94 does.
 pub fn generate_transmission_294_id() -> String {
     // 20 - "-TR2940-".len() - 1 (checksum)
     let mut random_suffix = [0u8; 11];

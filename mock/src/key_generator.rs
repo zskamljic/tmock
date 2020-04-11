@@ -1,5 +1,6 @@
 use rand;
 
+/// Generates a random hex key of 4 bytes
 pub fn generate_i32_hex_key() -> String {
     let mut key_id = [0u8; 4];
     rand::bytes(&mut key_id);
