@@ -1,3 +1,13 @@
+//! # bencode
+//!
+//! A [BEP 0003](https://www.bittorrent.org/beps/bep_0003.html) compliant
+//! bencode implementation and ways to encode and decode values. It also
+//! exposes functions for reading bencode from file (e.g. torrents), from
+//! `BufRead` trait.
+//!
+//! It also exposes `BencodeValue` enum for manual decoding as well as
+//! `Encodable` and `Decodable` traits to implement for encoding and
+//! decoding structs. These work well with `bencode_derive` crate.
 mod bytestring;
 mod decode;
 mod encode;
@@ -9,34 +19,78 @@ pub use decode::decode;
 pub use decode::Decodable;
 pub use encode::encode;
 pub use encode::Encodable;
-pub use std::collections::HashMap;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, ErrorKind, Result};
+use std::path::Path;
 use std::str;
 
+/// `BencodeValue` is an enum to store different bencode types.
+///
+/// # Values
+///
+/// [`Integer`]: enum.BencodeValue.html#variant.Integer
+/// [`String`]: enum.BencodeValue.html#variant.String
+/// [`ByteString`]: enum.BencodeValue.html#variant.ByteString
+/// [`List`]: enum.BencodeValue.html#variant.List
+/// [`Dictionary`]: enum.BencodeValue.html#variant.Dictionary
 #[derive(PartialEq)]
 pub enum BencodeValue {
+    /// Can store any integer value that fits in i64
     Integer(i64),
+    /// Can store any valid UTF-8 string
     String(String),
+    /// Can store any string, regardless of encoding, including invalid UTF-8
     ByteString(Vec<u8>),
+    /// Can store a vector of values, which don't need to be of the same type
     List(Vec<BencodeValue>),
+    /// Can store a dictionary, keys are always represented with strings, values
+    /// can be any valid bencode value.
     Dictionary(HashMap<String, BencodeValue>),
 }
 
-pub fn from_file(file_name: &str) -> Result<BencodeValue> {
+/// Load file from disk for the given path.
+///
+/// # Arguments
+///
+/// * `file_name` - the path to load the file from
+pub fn from_file<P: AsRef<Path>>(file_name: P) -> Result<BencodeValue> {
     let file = File::open(file_name)?;
     let mut reader = BufReader::new(file);
 
     read(&mut reader)
 }
 
-fn read<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
+/// Read a value from given reader
+///
+/// # Arguments
+///
+/// * `reader` - mutable reader that allows decoding of `BencodeValue`s
+///
+/// # Example
+///
+/// ```
+/// use crate::bencode::BencodeValue;
+/// use std::io::BufRead;
+///
+/// let mut input = "i108e".as_bytes();
+/// let value = bencode::read(&mut input).unwrap();
+///
+/// if let BencodeValue::Integer(value) = value {
+///     assert_eq!(108, value);
+/// } else {
+///     panic!("Value was not an integer");
+/// }
+/// ```
+pub fn read<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
     let mut type_buffer = [0u8; 1];
     reader.read_exact(&mut type_buffer)?;
 
     select_next_type(reader, type_buffer[0])
 }
 
+/// Selects the next type when reading, delegating the reading
+/// to dedicated functions based on type.
 fn select_next_type<T: BufRead>(reader: &mut T, type_token: u8) -> Result<BencodeValue> {
     match type_token {
         b'i' => read_integer(reader),
@@ -50,6 +104,8 @@ fn select_next_type<T: BufRead>(reader: &mut T, type_token: u8) -> Result<Bencod
     }
 }
 
+/// Reads an integer from the reader or returns an error if encoding
+/// is not valid.
 fn read_integer<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
     let mut pending = String::new();
 
@@ -83,6 +139,12 @@ fn read_integer<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
     }
 }
 
+/// Reads a string from the reader if possible
+///
+/// # Arguments
+///
+/// * `reader` - the reader from which to read the string
+/// * `first` - the first byte of length of the format
 fn read_string<T: BufRead>(reader: &mut T, first: u8) -> Result<BencodeValue> {
     let string_length = read_string_length(reader, first)?;
 
@@ -96,6 +158,12 @@ fn read_string<T: BufRead>(reader: &mut T, first: u8) -> Result<BencodeValue> {
     }
 }
 
+/// Reads the length of the string from reader.
+///
+/// # Arguments
+///
+/// * `reader` -  the source from which to read the value
+/// * `first` - the first byte of the length
 fn read_string_length<T: BufRead>(reader: &mut T, first: u8) -> Result<usize> {
     let mut pending_length = String::new();
     pending_length.push(first as char);
@@ -122,6 +190,7 @@ fn read_string_length<T: BufRead>(reader: &mut T, first: u8) -> Result<usize> {
     }
 }
 
+/// Reads a list from the input, deserializing items in the process.
 fn read_list<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
     let mut items = vec![];
 
@@ -139,6 +208,8 @@ fn read_list<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
     Ok(BencodeValue::List(items))
 }
 
+/// Reads a dictionary from the input, also validating keys and decoding
+/// the values in the process.
 fn read_dictionary<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
     let mut map = HashMap::new();
 
@@ -159,6 +230,7 @@ fn read_dictionary<T: BufRead>(reader: &mut T) -> Result<BencodeValue> {
     Ok(BencodeValue::Dictionary(map))
 }
 
+/// Reads a key for a map, ensuring it's a valid string
 fn read_key<T: BufRead>(reader: &mut T, type_token: u8) -> Result<String> {
     let value = select_next_type(reader, type_token)?;
     match value {
