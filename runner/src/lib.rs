@@ -4,6 +4,7 @@ use std::io::Result;
 use std::path::PathBuf;
 use torrent::{Decodable, Torrent};
 
+/// Checks whether or not the name of the file ends in torrent
 fn is_torrent(path: &PathBuf) -> bool {
     if let Some(extension) = path.extension() {
         return extension
@@ -14,6 +15,7 @@ fn is_torrent(path: &PathBuf) -> bool {
     false
 }
 
+/// Unwraps the tuple and maps it to None if an error is present.
 fn unwrap_path_content((path, value): (String, Result<Torrent>)) -> Option<(String, Torrent)> {
     match value {
         Ok(value) => Some((path, value)),
@@ -24,6 +26,7 @@ fn unwrap_path_content((path, value): (String, Result<Torrent>)) -> Option<(Stri
     }
 }
 
+/// Loads all files from "torrents" directory and maps them to `Torrent`
 pub fn load_existing_entries() -> Result<HashMap<String, Torrent>> {
     Ok(fs::read_dir("torrents")?
         .map(|file| file.map(|entry| entry.path()))
