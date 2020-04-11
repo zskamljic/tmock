@@ -7,6 +7,7 @@ use bencode_derive::Decodable;
 use http;
 use std::io::{Error, ErrorKind, Result};
 
+/// Response from get_trackers request
 #[derive(Decodable)]
 struct GetTrackers {
     #[bencode("failure reason")]
@@ -15,17 +16,20 @@ struct GetTrackers {
     peers: Option<Vec<Peer>>,
 }
 
+/// Uncompressed peer
 #[derive(Decodable)]
 pub struct Peer {
     pub ip: String,
     pub port: u16,
 }
 
+/// Tracker information extracted from the request
 pub struct TrackerInfo {
     pub interval: u32,
     pub peers: Vec<Peer>,
 }
 
+/// Requests the trackers for the given torrent
 pub fn request_trackers(torrent: &Torrent, peer_id: &[u8; 20], port: u16) -> Result<TrackerInfo> {
     let parameters = create_parameters(peer_id, port, &torrent.info);
     let result = http::http_get(&torrent.announce, &parameters, None)?;
@@ -33,6 +37,7 @@ pub fn request_trackers(torrent: &Torrent, peer_id: &[u8; 20], port: u16) -> Res
     process_response(&result)
 }
 
+/// Creates the request parameters to retrieve the trackers
 fn create_parameters(peer_id: &[u8; 20], port: u16, info: &Info) -> String {
     let mut result = String::new();
     result.push_str("?downloaded=0");
@@ -54,6 +59,7 @@ fn create_parameters(peer_id: &[u8; 20], port: u16, info: &Info) -> String {
     result
 }
 
+/// Url encode the provided data
 pub fn url_encode(data: &[u8]) -> String {
     data.iter()
         .map(|value| {
@@ -74,6 +80,7 @@ pub fn url_encode(data: &[u8]) -> String {
         .join("")
 }
 
+/// Handles the response and maps it to `TrackerInfo`
 fn process_response(response: &[u8]) -> Result<TrackerInfo> {
     let response = GetTrackers::read_bytes(response)?;
 
