@@ -42,6 +42,8 @@ As mentioned above the project has been created for learning purposes. For this
 reason most of the functionality has been manually implemented. The features
 have been split into individual crates.
 
+The docs for the whole project can be read by running `cargo doc --open`.
+
 ### bencode
 
 The bencode crate contains code for representation, encoding and decoding of
