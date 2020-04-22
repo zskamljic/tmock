@@ -53,7 +53,7 @@ crate wants to decode these values in structs instead of enum values.
 ### bencode_derive
 
 This crate contains derive macros for Encodable and Decodable and allows for
-automatic implementation of traits in (bencode)[#bencode] crate.
+automatic implementation of traits in [bencode](#bencode) crate.
 
 ### directories
 
